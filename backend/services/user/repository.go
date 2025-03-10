@@ -67,3 +67,44 @@ func (r *UserRepository) CreateUser(firstName, lastName, email, role string) (Us
 		Role:      role,
 	}, nil
 }
+
+// DisableUser and update user status
+func (r *UserRepository) DisableUser(userID string) error {
+	query := "UPDATE users SET status = 'inactive' WHERE id = ?"
+	_, err := database.DB.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to disable user: %v", err)
+	}
+	return nil
+}
+
+// UpdateUser 
+func (r *UserRepository) UpdateUser(userID string, user User) error {
+	query := "UPDATE users SET first_name = ?, last_name = ?, email = ?, role = ? WHERE id = ?"
+	_, err := database.DB.Exec(query, user.FirstName, user.LastName, user.Email, user.Role, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %v", err)
+	}
+	return nil
+}
+
+//Validate user credentials and get User
+func (r *UserRepository) GetUserByEmail(email string) (User, error) {
+	var user User
+	query := "SELECT id, first_name, last_name, email, role, password FROM users WHERE email = ?"
+	err := database.DB.QueryRow(query, email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.Password)
+	if err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
+//Update New Password
+func (r *UserRepository) UpdatePassword(email, hashedPassword string) error {
+	query := "UPDATE users SET password = ? WHERE email = ?"
+	_, err := database.DB.Exec(query, hashedPassword, email)
+	if err != nil {
+		return fmt.Errorf("failed to reset password: %v", err)
+	}
+	return nil
+}
