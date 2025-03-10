@@ -3,6 +3,8 @@ package client
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // CreateUserHandler handles the HTTP request to create a user
@@ -22,7 +24,7 @@ func CreateClientHandler(w http.ResponseWriter, r *http.Request) {
 	repo := NewClientRepository() // ✅ This ensures the table exists before inserting data
 	service := NewClientService(repo)
 
-	//  TO-DO: Call service layer to create client 
+	// Call service layer to create client 
 	createdClient, err := service.CreateClient(client)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -46,10 +48,10 @@ func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Initialize repository & service TODO: do we need seperate for accounts?
-	repo := NewClientRepository()
+	repo := NewClientRepository()  // ✅ This ensures the table exists before inserting data
 	service := NewClientService(repo)
 
-	// TODO: Call service layer to create account
+	// Call service layer to create account
 	createdAccount, err := service.CreateAccount(account)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -59,4 +61,21 @@ func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 	// Send back the created user as a response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(createdAccount)
+}
+
+// CreateUserHandler handles the HTTP request to create a user
+func DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	ClientID := vars["client_id"]
+
+	// Initialize repository & service TODO: do we need seperate for accounts?
+	repo := NewClientRepository()  // ✅ This ensures the table exists before inserting data
+	service := NewClientService(repo)
+
+	// Call service layer to create account
+	err := service.DeleteAccount(ClientID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }

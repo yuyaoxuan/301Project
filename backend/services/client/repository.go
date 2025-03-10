@@ -132,3 +132,46 @@ func (r *ClientRepository) CreateAccount(account Account) (Account, error) {
 	account.AccountID = int(id)
 	return account, nil
 }
+
+func (r *ClientRepository) DeleteAccount(ClientID string) (error) {
+	query := `DELETE FROM account WHERE client_id = ?`
+	result, err := database.DB.Exec(query, ClientID)
+
+	if err != nil {
+		return fmt.Errorf("failed to delete account: %v", err)
+	}
+	
+	// check how many accounts were deleted
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to get rows affected: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no accounts found for client_id %s", ClientID)
+	}
+
+	fmt.Printf("Deleted %d account(s) for client_id %s\n", rowsAffected, ClientID)
+
+	return nil
+}
+
+func (r *ClientRepository) ClientExists(ClientID string) (bool, error) {
+	var exists bool
+	query := `SELECT EXISTS(SELECT 1 FROM client WHERE client_id = ?)`
+	err := database.DB.QueryRow(query, ClientID).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("failed to check client existence: %v", err)
+	}
+	return exists, nil
+}
+
+// func (r *ClientRepository) AccountExists(account_id int) (bool, error) {
+// 	var exists bool
+// 	query := `SELECT EXISTS(SELECT 1 FROM account WHERE account_id = ?)`
+// 	err := database.DB.QueryRow(query, account_id).Scan(&exists)
+// 	if err != nil {
+// 		return false, fmt.Errorf("failed to check account id existence: %d", err)
+// 	}
+// 	return exists, nil
+// }
