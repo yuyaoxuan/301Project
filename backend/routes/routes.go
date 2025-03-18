@@ -23,7 +23,7 @@ func SetupRoutes() *mux.Router {
 	r.HandleFunc("/users", user.CreateUserHandler).Methods("POST")
 
 	// CLIENT ROUTES
-	r.HandleFunc("/clients", client.CreateClientHandler).Methods("POST")
+	r.HandleFunc("/clients/{agent_id}", client.CreateClientHandler).Methods("POST")
 	
 	// ACCOUNT Routes
 	r.HandleFunc("/accounts", account.CreateAccountHandler).Methods("POST")
