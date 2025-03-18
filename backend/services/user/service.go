@@ -3,7 +3,24 @@ package user
 import (
 	"errors"
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
+	"golang.org/x/crypto/bcrypt"
+	"time"
 )
+
+var jwtSecret = []byte("your-secret-key")
+
+
+func generateJWT(userID int, role string) (string, error) {
+	claims := jwt.MapClaims{
+		"userId": userID,
+		"role":   role,
+		"exp":    time.Now().Add(time.Hour * 2).Unix(), // Token expires in 2 hours
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString(jwtSecret)
+}
 
 // UserService struct to interact with the repository layer
 type UserService struct {
@@ -16,19 +33,20 @@ func NewUserService(repo *UserRepository) *UserService {
 }
 
 // CreateUser processes user creation request
-func (s *UserService) CreateUser(firstName, lastName, email, role string) (User, error) {
+func (s *UserService) CreateUser(firstName, lastName, email, password, role string) (User, error) {
 	// Validate inputs
-	if firstName == "" || lastName == "" || email == "" {
-		return User{}, errors.New("missing required user fields")
+	if firstName == "" || lastName == "" || email == "" || password == "" {
+		return User{}, errors.New("missing required fields")
 	}
 
-	// Ensure role is valid
-	if role != "Admin" && role != "Agent" {
-		return User{}, errors.New("invalid role: must be 'Admin' or 'Agent'")
+	// Hash the password before storing
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to hash password: %v", err)
 	}
 
 	// Call repository function to insert user
-	user, err := s.repo.CreateUser(firstName, lastName, email, role)
+	user, err := s.repo.CreateUser(firstName, lastName, email, string(hashedPassword), role)
 	if err != nil {
 		return User{}, fmt.Errorf("failed to create user: %v", err)
 	}

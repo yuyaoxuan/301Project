@@ -17,7 +17,7 @@ func SetupRoutes() *mux.Router {
 	}).Methods("GET")
 
 	// USER ROUTES
-	r.HandleFunc("/users", user.CreateUserHandler).Methods("POST")              // Create User
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")              // Create User
 	r.HandleFunc("/api/users/{userId}", user.DisableUserHandler).Methods("DELETE")  // Disable User
 	r.HandleFunc("/api/users/{userId}", user.UpdateUserHandler).Methods("PUT")      // Update User
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Authenticate User (Login)

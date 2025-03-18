@@ -4,6 +4,7 @@ package user
 import (
 	"encoding/json"
 	"net/http"
+	"github.com/gorilla/mux"
 )
 
 // CreateUserHandler handles the HTTP request to create a user
@@ -22,7 +23,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	service := NewUserService(repo)
 
 	// Call service layer to create user
-	createdUser, err := service.CreateUser(user.FirstName, user.LastName, user.Email, user.Role)
+	createdUser, err := service.CreateUser(user.FirstName, user.LastName, user.Email, user.Password, user.Role)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

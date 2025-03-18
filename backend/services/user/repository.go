@@ -12,7 +12,9 @@ type User struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
+	Password  string `json:"password"`
 	Role      string `json:"role"`
+	Status    string `json:"status"`
 }
 
 // UserRepository struct for interacting with database
@@ -45,26 +47,28 @@ func (r *UserRepository) InitUserTable() {
 }
 
 // CreateUser inserts a new user into the database
-func (r *UserRepository) CreateUser(firstName, lastName, email, role string) (User, error) {
-	query := "INSERT INTO users (first_name, last_name, email, role) VALUES (?, ?, ?, ?)"
-	result, err := database.DB.Exec(query, firstName, lastName, email, role)
+func (r *UserRepository) CreateUser(firstName, lastName, email, password, role string) (User, error) {
+	query := "INSERT INTO users (first_name, last_name, email, password, role, status) VALUES (?, ?, ?, ?, ?, 'active')"
+	result, err := database.DB.Exec(query, firstName, lastName, email, password, role)
 	if err != nil {
 		return User{}, fmt.Errorf("failed to insert user: %v", err)
 	}
 
-	// Get the last inserted ID
+	// Get last inserted ID
 	id, err := result.LastInsertId()
 	if err != nil {
 		return User{}, fmt.Errorf("failed to retrieve inserted user ID: %v", err)
 	}
 
-	// Return the created user
+	// Return created user
 	return User{
 		ID:        int(id),
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
+		Password:  password, 
 		Role:      role,
+		Status:    "active",
 	}, nil
 }
 
