@@ -3,8 +3,10 @@ package routes
 import (
 	"net/http"
 
-	"backend/services/client" // import user service
-	"backend/services/user"   // import user service
+	"backend/services/account" // import account service
+	"backend/services/agentClient"
+	"backend/services/client"
+	"backend/services/user" // import user service
 
 	"github.com/gorilla/mux"
 )
@@ -22,8 +24,14 @@ func SetupRoutes() *mux.Router {
 
 	// CLIENT ROUTES
 	r.HandleFunc("/clients", client.CreateClientHandler).Methods("POST")
-	r.HandleFunc("/accounts", client.CreateAccountHandler).Methods("POST")
-	r.HandleFunc("/accounts/{client_id}", client.DeleteAccountHandler).Methods("DELETE")
 	
+	// ACCOUNT Routes
+	r.HandleFunc("/accounts", account.CreateAccountHandler).Methods("POST")
+	r.HandleFunc("/accounts/{account_id}", account.DeleteAccountHandler).Methods("DELETE")
+	
+	// agentClient routes 
+	r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT")
+
+
 	return r
 }
