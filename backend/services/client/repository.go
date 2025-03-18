@@ -2,221 +2,302 @@ package client
 
 import (
 	"backend/database"
+	"database/sql"
 	"fmt"
 	"log"
-	"github.com/google/uuid"
 )
 
-// User struct represents a user in the system
+// Client struct represents a client in the system
 type Client struct {
-	ClientID   string `json:"client_id"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	DOB        string `json:"dob"`
-	Gender     string `json:"gender"`
-	Email      string `json:"email"`
-	Phone      string `json:"phone"`
-	Address    string `json:"address"`
-	City       string `json:"city"`
-	State      string `json:"state"`
-	Country    string `json:"country"`
-	PostalCode string `json:"postal_code"`
-	
+	ClientID           string `json:"client_id"`
+	FirstName          string `json:"first_name"`
+	LastName           string `json:"last_name"`
+	DOB                string `json:"dob"`
+	Gender             string `json:"gender"`
+	Email              string `json:"email"`
+	Phone              string `json:"phone"`
+	Address            string `json:"address"`
+	City               string `json:"city"`
+	State              string `json:"state"`
+	Country            string `json:"country"`
+	PostalCode         string `json:"postal_code"`
+	VerificationStatus string `json:"verification_status"`
 }
 
-
-type Account struct {
-	AccountID     int     `json:"account_id"`
-	ClientID      string  `json:"client_id"`
-	AccountType   string  `json:"account_type"`
-	AccountStatus string  `json:"account_status"`
-	OpeningDate   string  `json:"opening_date"`
-	InitialDeposit float64 `json:"initial_deposit"`
-	Currency      string  `json:"currency"`
-	BranchID      string  `json:"branch_id"`
-}
-
-
-// UserRepository struct for interacting with database
+// ClientRepository struct for interacting with the database
 type ClientRepository struct{}
 
 // NewClientRepository initializes a new ClientRepository
 func NewClientRepository() *ClientRepository {
 	repo := &ClientRepository{}
-	repo.InitClientTables() // ✅ Ensure tables exist when the repository is created
+	repo.InitClientTables() // Ensure tables exist when the repository is created
 	return repo
 }
 
-// InitClientTables creates the client and account tables if they don't exist
+// InitClientTables creates the client table if it doesn't exist
 func (r *ClientRepository) InitClientTables() {
-	// Create client table
 	clientTable := `
 	CREATE TABLE IF NOT EXISTS client (
 		client_id VARCHAR(50) PRIMARY KEY,
 		first_name CHAR(50) NOT NULL,
 		last_name CHAR(50) NOT NULL,
 		dob DATE NOT NULL,
-		gender VARCHAR(10) NOT NULL,
+		gender VARCHAR(20) NOT NULL,
 		email VARCHAR(100) UNIQUE NOT NULL,
 		phone VARCHAR(15) UNIQUE NOT NULL,
 		address VARCHAR(100) NOT NULL,
 		city VARCHAR(50) NOT NULL,
 		state VARCHAR(50) NOT NULL,
 		country VARCHAR(50) NOT NULL,
-		postal_code VARCHAR(10) NOT NULL
+		postal_code VARCHAR(10) NOT NULL,
+		verification_status VARCHAR(20) DEFAULT 'unverified'
 	);`
 	_, err := database.DB.Exec(clientTable)
 	if err != nil {
 		log.Fatal("❌ Error creating client table:", err)
 	}
 
-	// Create account table
-	accountTable := `
-	CREATE TABLE IF NOT EXISTS account (
-		account_id INT AUTO_INCREMENT PRIMARY KEY,
-		client_id VARCHAR(50) NOT NULL,
-		account_type VARCHAR(50) NOT NULL,
-		account_status VARCHAR(50) NOT NULL,
-		opening_date DATE NOT NULL,
-		initial_deposit FLOAT NOT NULL,
-		currency VARCHAR(50) NOT NULL,
-		branch_id VARCHAR(50) NOT NULL,
-		FOREIGN KEY (client_id) REFERENCES client(client_id)
+	counterTable := `
+	CREATE TABLE IF NOT EXISTS counter (
+		id INT PRIMARY KEY AUTO_INCREMENT,
+		name VARCHAR(50) UNIQUE NOT NULL,
+		value INT NOT NULL
 	);`
-	_, err = database.DB.Exec(accountTable)
+	_, err = database.DB.Exec(counterTable)
 	if err != nil {
-		log.Fatal("❌ Error creating account table:", err)
+		log.Fatal("❌ Error creating counter table:", err)
 	}
 
-	fmt.Println("✅ Client and account tables checked/created!")
+	// Initialize client counter if not exists
+	_, err = database.DB.Exec("INSERT IGNORE INTO counter (name, value) VALUES ('client', 0);")
+	if err != nil {
+		log.Fatal("❌ Error initializing client counter:", err)
+	}
+
+	fmt.Println("✅ Client table checked/created!")
 }
 
-// CreateAccount inserts a new account into the database
-func (r *ClientRepository) CreateClient(client Client) (Client, error) {
+// EmailExists checks if an email already exists in the database
+func (r *ClientRepository) EmailExists(email string) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM client WHERE email = ?`
+	err := database.DB.QueryRow(query, email).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check email uniqueness: %v", err)
+	}
+	return count > 0, nil
+}
 
-	// Generate a unique client ID if one isn't provided
-	if client.ClientID == "" {
-		client.ClientID = uuid.New().String()
+// PhoneExists checks if a phone number already exists in the database
+func (r *ClientRepository) PhoneExists(phone string) (bool, error) {
+	var count int
+	query := `SELECT COUNT(*) FROM client WHERE phone = ?`
+	err := database.DB.QueryRow(query, phone).Scan(&count)
+	if err != nil {
+		return false, fmt.Errorf("failed to check phone uniqueness: %v", err)
+	}
+	return count > 0, nil
+}
+
+// CreateClient inserts a new client into the database
+func (r *ClientRepository) CreateClient(client Client) (Client, error) {
+	var currentValue int
+
+	// Begin a transaction to ensure atomicity
+	tx, err := database.DB.Begin()
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to begin transaction: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Retrieve the current value of the client counter
+	query := `SELECT value FROM counter WHERE name = 'client' FOR UPDATE`
+	err = tx.QueryRow(query).Scan(&currentValue)
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to get client counter: %v", err)
 	}
 
-	query := `
-	INSERT INTO client 
-	(client_id, first_name, last_name, dob, gender, email, phone, address, city, state, country, postal_code) 
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+	// Increment the counter and generate a new client ID
+	newValue := currentValue + 1
+	client.ClientID = fmt.Sprintf("client%d", newValue)
+
+	// Update the counter value in the database
+	updateQuery := `UPDATE counter SET value = ? WHERE name = 'client'`
+	_, err = tx.Exec(updateQuery, newValue)
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to update client counter: %v", err)
+	}
+
+	// Set default verification status
+	client.VerificationStatus = "unverified"
+
+	// Insert the new client into the database
+	insertQuery := `
+        INSERT INTO client 
+        (client_id, first_name, last_name, dob, gender, email, phone, address, city, state, country, postal_code, verification_status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	
-	_, err := database.DB.Exec(query,
-		client.ClientID, client.FirstName, client.LastName, client.DOB, client.Gender,
-		client.Email, client.Phone, client.Address, client.City, client.State,
-		client.Country, client.PostalCode,
+	_, err = tx.Exec(insertQuery,
+		client.ClientID, client.FirstName, client.LastName, client.DOB,
+		client.Gender, client.Email, client.Phone, client.Address,
+		client.City, client.State, client.Country, client.PostalCode,
+		client.VerificationStatus,
 	)
 	if err != nil {
 		return Client{}, fmt.Errorf("failed to insert client: %v", err)
 	}
 
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		return Client{}, fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
 	return client, nil
-}
-
-func (r *ClientRepository) CreateAccount(account Account) (Account, error) {
-	query := `
-	INSERT INTO account 
-	(client_id, account_type, account_status, opening_date, initial_deposit, currency, branch_id) 
-	VALUES (?, ?, ?, ?, ?, ?, ?)`
-
-	result, err := database.DB.Exec(query,
-		account.ClientID, account.AccountType, account.AccountStatus,
-		account.OpeningDate, account.InitialDeposit, account.Currency,
-		account.BranchID,
-	)
-	if err != nil {
-		return Account{}, fmt.Errorf("failed to insert account: %v", err)
-	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return Account{}, fmt.Errorf("failed to retrieve inserted account ID: %v", err)
-	}
-
-	account.AccountID = int(id)
-	return account, nil
 }
 
 // GetClientByID retrieves a client by their ID
 func (r *ClientRepository) GetClientByID(clientID string) (Client, error) {
-    query := `SELECT * FROM client WHERE client_id = ?`
-    
-    var client Client
-    err := database.DB.QueryRow(query, clientID).Scan(
-        &client.ClientID, &client.FirstName, &client.LastName, 
-        &client.DOB, &client.Gender, &client.Email, 
-        &client.Phone, &client.Address, &client.City, 
-        &client.State, &client.Country, &client.PostalCode,
-    )
-    
-    if err != nil {
-        return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
-    }
-    
-    return client, nil
+	query := `SELECT * FROM client WHERE client_id = ?`
+
+	var client Client
+	err := database.DB.QueryRow(query, clientID).Scan(
+		&client.ClientID, &client.FirstName, &client.LastName,
+		&client.DOB, &client.Gender, &client.Email,
+		&client.Phone, &client.Address, &client.City,
+		&client.State, &client.Country, &client.PostalCode,
+		&client.VerificationStatus,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Client{}, fmt.Errorf("client with ID %s not found", clientID)
+		}
+		return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
+	}
+
+	return client, nil
 }
 
 // UpdateClient updates an existing client's information
 func (r *ClientRepository) UpdateClient(client Client) (Client, error) {
-    query := `
+	// Check if client exists
+	_, err := r.GetClientByID(client.ClientID)
+	if err != nil {
+		return Client{}, err
+	}
+
+	// Check email uniqueness if changed
+	var currentEmail string
+	err = database.DB.QueryRow("SELECT email FROM client WHERE client_id = ?", client.ClientID).Scan(&currentEmail)
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to retrieve current email: %v", err)
+	}
+
+	if currentEmail != client.Email {
+		exists, err := r.EmailExists(client.Email)
+		if err != nil {
+			return Client{}, err
+		}
+		if exists {
+			return Client{}, fmt.Errorf("email address already exists")
+		}
+	}
+
+	// Check phone uniqueness if changed
+	var currentPhone string
+	err = database.DB.QueryRow("SELECT phone FROM client WHERE client_id = ?", client.ClientID).Scan(&currentPhone)
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to retrieve current phone: %v", err)
+	}
+
+	if currentPhone != client.Phone {
+		exists, err := r.PhoneExists(client.Phone)
+		if err != nil {
+			return Client{}, err
+		}
+		if exists {
+			return Client{}, fmt.Errorf("phone number already exists")
+		}
+	}
+
+	query := `
     UPDATE client 
-    SET first_name = ?, last_name = ?, dob = ?, gender = ?, 
-        email = ?, phone = ?, address = ?, city = ?, 
+    SET first_name = ?, last_name = ?, dob = ?, gender = ?,
+        email = ?, phone = ?, address = ?, city = ?,
         state = ?, country = ?, postal_code = ?
     WHERE client_id = ?`
-    
-    _, err := database.DB.Exec(query,
-        client.FirstName, client.LastName, client.DOB, client.Gender,
-        client.Email, client.Phone, client.Address, client.City, 
-        client.State, client.Country, client.PostalCode, client.ClientID,
-    )
-    
-    if err != nil {
-        return Client{}, fmt.Errorf("failed to update client: %v", err)
-    }
-    
-    return client, nil
+
+	_, err = database.DB.Exec(query,
+		client.FirstName, client.LastName, client.DOB, client.Gender,
+		client.Email, client.Phone, client.Address, client.City,
+		client.State, client.Country, client.PostalCode, client.ClientID,
+	)
+
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to update client: %v", err)
+	}
+
+	// Retrieve the updated client to return
+	return r.GetClientByID(client.ClientID)
 }
 
-// DeleteClient removes a client from the database
+// DeleteClient removes a client's profile from the database
 func (r *ClientRepository) DeleteClient(clientID string) error {
-    query := `DELETE FROM client WHERE client_id = ?`
-    
-    result, err := database.DB.Exec(query, clientID)
-    if err != nil {
-        return fmt.Errorf("failed to delete client: %v", err)
-    }
-    
-    rowsAffected, err := result.RowsAffected()
-    if err != nil {
-        return fmt.Errorf("error checking rows affected: %v", err)
-    }
-    
-    if rowsAffected == 0 {
-        return fmt.Errorf("client with ID %s not found", clientID)
-    }
-    
-    return nil
+	// Check if client exists
+	_, err := r.GetClientByID(clientID)
+	if err != nil {
+		return err
+	}
+
+	query := `DELETE FROM client WHERE client_id = ?`
+
+	result, err := database.DB.Exec(query, clientID)
+	if err != nil {
+		return fmt.Errorf("failed to delete client: %v", err)
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return fmt.Errorf("no rows affected; client with ID %s not found", clientID)
+	}
+
+	return nil
 }
 
 // VerifyClient updates a client's verification status
 func (r *ClientRepository) VerifyClient(clientID string) error {
-    // In a real application, you would have a verification_status column
-    // For this implementation, we'll just check if the client exists
-    
-    query := `SELECT client_id FROM client WHERE client_id = ?`
-    
-    var id string
-    err := database.DB.QueryRow(query, clientID).Scan(&id)
-    if err != nil {
-        return fmt.Errorf("client with ID %s not found: %v", clientID, err)
-    }
-    
-    // In a real application, you would update the verification status here
-    // UPDATE client SET verification_status = 'verified' WHERE client_id = ?
-    
-    return nil
+	// Check if client exists
+	_, err := r.GetClientByID(clientID)
+	if err != nil {
+		return err
+	}
+
+	query := `
+	SELECT verification_status FROM client WHERE client_id = ?`
+
+	var currentStatus string
+	err = database.DB.QueryRow(query, clientID).Scan(&currentStatus)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve verification status: %v", err)
+	}
+
+	if currentStatus == "verified" {
+		return fmt.Errorf("client %s is already verified", clientID)
+	}
+
+	updateQuery := `
+    UPDATE client 
+    SET verification_status = 'verified' 
+    WHERE client_id = ?`
+
+	_, err = database.DB.Exec(updateQuery, clientID)
+	if err != nil {
+		return fmt.Errorf("failed to update verification status: %v", err)
+	}
+
+	return nil
 }
