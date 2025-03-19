@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"backend/services/user" // import user service
+	agentclientlogs "backend/services/agentclient_logs"     // import transaction logs service
 
 	"github.com/gorilla/mux"
 )
