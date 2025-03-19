@@ -75,7 +75,7 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 		return Client{}, fmt.Errorf("failed to insert client: %v", err)
 	}
 	
-	// ✅ Insert into agent_client with id set to NULL 
+	// ✅ Insert into agent_client with agent_id
 	agentClientQuery := `
 	INSERT INTO agent_client 
 	(client_id, id) 
@@ -91,6 +91,10 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 
 func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
 	query := `SELECT 1 FROM users WHERE id = ?`
+	// check with agent exisit 
+
+	// to-do: need to check if user is agent or admin 
+
 	var exists int
 	err := database.DB.QueryRow(query, AgentID).Scan(&exists)
 	if err != nil {

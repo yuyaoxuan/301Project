@@ -15,14 +15,14 @@ func NewAccountService(repo *AccountRepository) *AccountService {
 }
 
 func (s *AccountService) CreateAccount(account Account) (Account, error) {
-	// TODO: Check if client_id exists before proceeding
-	// exists, err := s.repo.ClientExists(account.ClientID)
-	// if err != nil {
-	// 	return Account{}, fmt.Errorf("failed to check client existence: %v", err)
-	// }
-	// if !exists {
-	// 	return Account{}, fmt.Errorf("client_id %q does not exist", account.ClientID)
-	// }
+	// Check if client_id exists before proceeding
+	exists, err := s.repo.ClientExists(account.ClientID)
+	if err != nil {
+		return Account{}, fmt.Errorf("failed to check client existence: %v", err)
+	}
+	if !exists {
+		return Account{}, fmt.Errorf("client_id %q does not exist", account.ClientID)
+	}
 
 	// Call repository function to insert account
 	createdAccount, err := s.repo.CreateAccount(account)
