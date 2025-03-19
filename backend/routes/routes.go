@@ -19,7 +19,12 @@ func SetupRoutes() *mux.Router {
 	// USER ROUTES
 	r.HandleFunc("/users", user.CreateUserHandler).Methods("POST")
 
-	// CLIENT ROUTES
+	// TRANSACTION LOGS ROUTES
+	r.HandleFunc("/agentclient_logs", agentclientlogs.CreateAgentClientLogHandler).Methods("POST")
+	r.HandleFunc("/agentclient_logs/{logID}", agentclientlogs.DeleteAgentClientLogHandler).Methods("DELETE")
+	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclientlogs.GetAgentClientLogsByClientHandler).Methods("GET")
+	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclientlogs.GetAgentClientLogsByAgentHandler).Methods("GET")
+	r.HandleFunc("/agentclient_logs", agentclientlogs.GetAllAgentClientLogsHandler).Methods("GET")
 
 	return r
 }
