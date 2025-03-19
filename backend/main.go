@@ -8,6 +8,7 @@ import (
 	"backend/database"
 	"backend/routes"        // Import routes from the routes package
 	"backend/services/user" // Import user service to initialize table
+	"backend/services/agentclient_logs" // Import agent-client logs to initialize its table
 )
 
 func main() {
