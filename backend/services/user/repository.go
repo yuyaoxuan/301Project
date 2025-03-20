@@ -12,7 +12,9 @@ type User struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 	Email     string `json:"email"`
+	Password  string `json:"password"`
 	Role      string `json:"role"`
+	Status    string `json:"status"`
 }
 
 // UserRepository struct for interacting with database
@@ -45,25 +47,68 @@ func (r *UserRepository) InitUserTable() {
 }
 
 // CreateUser inserts a new user into the database
-func (r *UserRepository) CreateUser(firstName, lastName, email, role string) (User, error) {
-	query := "INSERT INTO users (first_name, last_name, email, role) VALUES (?, ?, ?, ?)"
-	result, err := database.DB.Exec(query, firstName, lastName, email, role)
+func (r *UserRepository) CreateUser(firstName, lastName, email, password, role string) (User, error) {
+	query := "INSERT INTO users (first_name, last_name, email, password, role, status) VALUES (?, ?, ?, ?, ?, 'active')"
+	result, err := database.DB.Exec(query, firstName, lastName, email, password, role)
 	if err != nil {
 		return User{}, fmt.Errorf("failed to insert user: %v", err)
 	}
 
-	// Get the last inserted ID
+	// Get last inserted ID
 	id, err := result.LastInsertId()
 	if err != nil {
 		return User{}, fmt.Errorf("failed to retrieve inserted user ID: %v", err)
 	}
 
-	// Return the created user
+	// Return created user
 	return User{
 		ID:        int(id),
 		FirstName: firstName,
 		LastName:  lastName,
 		Email:     email,
+		Password:  password, 
 		Role:      role,
+		Status:    "active",
 	}, nil
+}
+
+// DisableUser and update user status
+func (r *UserRepository) DisableUser(userID string) error {
+	query := "UPDATE users SET status = 'inactive' WHERE id = ?"
+	_, err := database.DB.Exec(query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to disable user: %v", err)
+	}
+	return nil
+}
+
+// UpdateUser 
+func (r *UserRepository) UpdateUser(userID string, user User) error {
+	query := "UPDATE users SET first_name = ?, last_name = ?, email = ?, role = ? WHERE id = ?"
+	_, err := database.DB.Exec(query, user.FirstName, user.LastName, user.Email, user.Role, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %v", err)
+	}
+	return nil
+}
+
+//Validate user credentials and get User
+func (r *UserRepository) GetUserByEmail(email string) (User, error) {
+	var user User
+	query := "SELECT id, first_name, last_name, email, role, password FROM users WHERE email = ?"
+	err := database.DB.QueryRow(query, email).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.Password)
+	if err != nil {
+		return User{}, err
+	}
+	return user, nil
+}
+
+//Update New Password
+func (r *UserRepository) UpdatePassword(email, hashedPassword string) error {
+	query := "UPDATE users SET password = ? WHERE email = ?"
+	_, err := database.DB.Exec(query, hashedPassword, email)
+	if err != nil {
+		return fmt.Errorf("failed to reset password: %v", err)
+	}
+	return nil
 }
