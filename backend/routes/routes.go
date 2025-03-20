@@ -3,7 +3,9 @@ package routes
 import (
 	"net/http"
 
-	"backend/services/user" // Import user service
+	"backend/services/user" // import user service
+	agentclientlogs "backend/services/agentclient_logs"     // import transaction logs service
+
 
 	"github.com/gorilla/mux"
 )
@@ -21,13 +23,21 @@ func SetupRoutes() *mux.Router {
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
 	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                     // Register User
 
-	// Protected Routes (Require JWT)
+  // Protected Routes (Require JWT)
 	protected := r.PathPrefix("/api").Subrouter()
 	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
 
 	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")  // Disable User
 	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")      // Update User
 	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST")  // Reset Password
+
+	// TRANSACTION LOGS ROUTES
+	r.HandleFunc("/agentclient_logs", agentclientlogs.CreateAgentClientLogHandler).Methods("POST")
+	r.HandleFunc("/agentclient_logs/{logID}", agentclientlogs.DeleteAgentClientLogHandler).Methods("DELETE")
+	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclientlogs.GetAgentClientLogsByClientHandler).Methods("GET")
+	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclientlogs.GetAgentClientLogsByAgentHandler).Methods("GET")
+	r.HandleFunc("/agentclient_logs", agentclientlogs.GetAllAgentClientLogsHandler).Methods("GET")
+
 
 	return r
 }
