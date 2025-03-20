@@ -1,26 +1,11 @@
 package user
-//Logic File
+
+// Logic File
 import (
 	"errors"
 	"fmt"
-	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"time"
 )
-
-var jwtSecret = []byte("your-secret-key")
-
-
-func generateJWT(userID int, role string) (string, error) {
-	claims := jwt.MapClaims{
-		"userId": userID,
-		"role":   role,
-		"exp":    time.Now().Add(time.Hour * 2).Unix(), // Token expires in 2 hours
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(jwtSecret)
-}
 
 // UserService struct to interact with the repository layer
 type UserService struct {
@@ -56,19 +41,32 @@ func (s *UserService) CreateUser(firstName, lastName, email, password, role stri
 
 // DisableUser service function
 func (s *UserService) DisableUser(userID string) error {
-	return s.repo.DisableUser(userID)
+	err := s.repo.DisableUser(userID)
+	if err != nil {
+		return fmt.Errorf("failed to disable user: %v", err)
+	}
+	return nil
 }
 
-// Update user Details
+// Update user details
 func (s *UserService) UpdateUser(userID string, user User) error {
 	if user.FirstName == "" || user.LastName == "" || user.Email == "" {
 		return errors.New("missing required fields")
 	}
 
-	return s.repo.UpdateUser(userID, user)
+	err := s.repo.UpdateUser(userID, user)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %v", err)
+	}
+	return nil
 }
 
-//Authenticate User for Login
+// GetUserByEmail retrieves a user by email
+func (s *UserService) GetUserByEmail(email string) (User, error) {
+	return s.repo.GetUserByEmail(email)
+}
+
+// AuthenticateUser for Login
 func (s *UserService) AuthenticateUser(email, password string) (string, error) {
 	user, err := s.repo.GetUserByEmail(email)
 	if err != nil {
@@ -81,8 +79,8 @@ func (s *UserService) AuthenticateUser(email, password string) (string, error) {
 		return "", errors.New("invalid credentials")
 	}
 
-	// Generate JWT Token (OAuth2 Implementation)
-	token, err := generateJWT(user.ID, user.Role)
+	// Generate JWT Token
+	token, err := GenerateJWT(user.ID, user.Role) // ✅ Use GenerateJWT from jwt_utils.go
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +88,7 @@ func (s *UserService) AuthenticateUser(email, password string) (string, error) {
 	return token, nil
 }
 
-//Reset Password
+// ResetPassword allows users to reset their password
 func (s *UserService) ResetPassword(email, newPassword string) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
 	if err != nil {

@@ -4,6 +4,7 @@ package user
 import (
 	"encoding/json"
 	"net/http"
+	"golang.org/x/crypto/bcrypt"
 	"github.com/gorilla/mux"
 )
 
@@ -89,15 +90,32 @@ func AuthenticateUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Initialize repository & service
 	repo := NewUserRepository()
 	service := NewUserService(repo)
 
-	token, err := service.AuthenticateUser(credentials.Email, credentials.Password)
+	// Fetch user by email
+	user, err := service.GetUserByEmail(credentials.Email)
 	if err != nil {
 		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
 		return
 	}
 
+	// Verify password
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
+	if err != nil {
+		http.Error(w, "Invalid email or password", http.StatusUnauthorized)
+		return
+	}
+
+	// Generate JWT token
+	token, err := GenerateJWT(user.ID, user.Role)
+	if err != nil {
+		http.Error(w, "Failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
+	// Return token in response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
