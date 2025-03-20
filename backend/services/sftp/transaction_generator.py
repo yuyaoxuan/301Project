@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 def generate_clients(start_number, num_clients=5):
     return [f'client{i}' for i in range(start_number, start_number + num_clients)]
 
-# Example: Start from client number 6
-start_number = 6
+# Start from client number 1 and generate 5 clients
+start_number = 1
 clients = generate_clients(start_number)
 start_year = 2024
 end_year = 2025
@@ -19,7 +19,7 @@ num_transactions_per_month = 50
 
 # Generate the transactions
 # Global counter for transaction IDs
-global_last_id = 3000  # Starting point for global ID
+global_last_id = 1000  # Starting point for global ID
 
 # Function to generate a random transaction
 def generate_transaction(last_id, client_id, current_date, time_increment):
