@@ -18,18 +18,19 @@ func SetupRoutes() *mux.Router {
 		w.Write([]byte("API is running!"))
 	}).Methods("GET")
 
-	// Public Routes (No Authentication Needed)
-	// r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
+	Public Routes (No Authentication Needed)
+	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
 	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST") // Register User
 
 	// Protected Routes (Require JWT)
 	protected := r.PathPrefix("/api").Subrouter()
 	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
 
-	// protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
-	// protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
-	// protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
+	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
+	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
+	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
 
+	
 	// AgentClient logs routes
 	r.HandleFunc("/agentclient_logs", agentclient_logs.CreateAgentClientLogHandler).Methods("POST")
 	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler).Methods("GET")
