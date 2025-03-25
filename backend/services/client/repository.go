@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/google/uuid"
 )
 
 // User struct represents a user in the system
@@ -60,7 +62,13 @@ func (r *ClientRepository) InitClientTables() {
 }
 
 // CreateAccount inserts a new account into the database
-func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, error) {
+func (r *ClientRepository) CreateClient(client Client, ) (Client, error) {
+
+	// Generate a unique client ID if one isn't provided
+	if client.ClientID == "" {
+		client.ClientID = uuid.New().String()
+	}
+
 	query := `
 	INSERT INTO client 
 	(client_id, first_name, last_name, dob, gender, email, phone, address, city, state, country, postal_code) 
@@ -103,5 +111,93 @@ func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
 		}
 		return false, err
 	}
-	return true, nil
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return Account{}, fmt.Errorf("failed to retrieve inserted account ID: %v", err)
+	}
+
+	account.AccountID = int(id)
+	return account, nil
+}
+
+// GetClientByID retrieves a client by their ID
+func (r *ClientRepository) GetClientByID(clientID string) (Client, error) {
+    query := `SELECT * FROM client WHERE client_id = ?`
+    
+    var client Client
+    err := database.DB.QueryRow(query, clientID).Scan(
+        &client.ClientID, &client.FirstName, &client.LastName, 
+        &client.DOB, &client.Gender, &client.Email, 
+        &client.Phone, &client.Address, &client.City, 
+        &client.State, &client.Country, &client.PostalCode,
+    )
+    
+    if err != nil {
+        return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
+    }
+    
+    return client, nil
+}
+
+// UpdateClient updates an existing client's information
+func (r *ClientRepository) UpdateClient(client Client) (Client, error) {
+    query := `
+    UPDATE client 
+    SET first_name = ?, last_name = ?, dob = ?, gender = ?, 
+        email = ?, phone = ?, address = ?, city = ?, 
+        state = ?, country = ?, postal_code = ?
+    WHERE client_id = ?`
+    
+    _, err := database.DB.Exec(query,
+        client.FirstName, client.LastName, client.DOB, client.Gender,
+        client.Email, client.Phone, client.Address, client.City, 
+        client.State, client.Country, client.PostalCode, client.ClientID,
+    )
+    
+    if err != nil {
+        return Client{}, fmt.Errorf("failed to update client: %v", err)
+    }
+    
+    return client, nil
+}
+
+// DeleteClient removes a client from the database
+func (r *ClientRepository) DeleteClient(clientID string) error {
+    query := `DELETE FROM client WHERE client_id = ?`
+    
+    result, err := database.DB.Exec(query, clientID)
+    if err != nil {
+        return fmt.Errorf("failed to delete client: %v", err)
+    }
+    
+    rowsAffected, err := result.RowsAffected()
+    if err != nil {
+        return fmt.Errorf("error checking rows affected: %v", err)
+    }
+    
+    if rowsAffected == 0 {
+        return fmt.Errorf("client with ID %s not found", clientID)
+    }
+    
+    return nil
+}
+
+// VerifyClient updates a client's verification status
+func (r *ClientRepository) VerifyClient(clientID string) error {
+    // In a real application, you would have a verification_status column
+    // For this implementation, we'll just check if the client exists
+    
+    query := `SELECT client_id FROM client WHERE client_id = ?`
+    
+    var id string
+    err := database.DB.QueryRow(query, clientID).Scan(&id)
+    if err != nil {
+        return fmt.Errorf("client with ID %s not found: %v", clientID, err)
+    }
+    
+    // In a real application, you would update the verification status here
+    // UPDATE client SET verification_status = 'verified' WHERE client_id = ?
+    
+    return nil
 }

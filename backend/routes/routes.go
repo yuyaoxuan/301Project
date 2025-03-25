@@ -32,6 +32,11 @@ func SetupRoutes() *mux.Router {
 	// agentClient routes 
 	r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT") 
 	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT") 
+	r.HandleFunc("/api/clients", client.CreateClientHandler).Methods("POST")
+    r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler).Methods("GET")
+    r.HandleFunc("/api/clients/{clientId}", client.UpdateClientHandler).Methods("PUT")
+    r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler).Methods("DELETE")
+    r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler).Methods("POST")
 
 	return r
 }
