@@ -24,9 +24,8 @@ func NewClientService(repo *ClientRepository) *ClientService {
 	return &ClientService{repo: repo}
 }
 
-<<<<<<< HEAD
 // CreateUser processes user creation request
-func (s *Clientservice) CreateClient(client Client, AgentID int) (Client, error) {
+func (s *ClientService) CreateClient(client Client, AgentID int) (Client, error) {
 	// ✅ Check if agent exists
 	exists, err := s.repo.AgentExists(AgentID)
 	if err != nil {
@@ -37,11 +36,7 @@ func (s *Clientservice) CreateClient(client Client, AgentID int) (Client, error)
 		return Client{}, fmt.Errorf("agent's id not found")
 	}
 
-	// Call repository function to insert client
-	createdClient, err := s.repo.CreateClient(client, AgentID)
-=======
-// CreateClient processes client creation requests
-func (s *ClientService) CreateClient(client Client) (Client, error) {
+
 	if err := validateClient(client); err != nil {
 		return Client{}, err
 	}
@@ -56,8 +51,8 @@ func (s *ClientService) CreateClient(client Client) (Client, error) {
 		return Client{}, fmt.Errorf("phone number already exists")
 	}
 
-	createdClient, err := s.repo.CreateClient(client)
->>>>>>> origin/austin
+	// Call repository function to insert client
+	createdClient, err := s.repo.CreateClient(client, AgentID)
 	if err != nil {
 		return Client{}, fmt.Errorf("failed to create client: %v", err)
 	}
@@ -66,21 +61,6 @@ func (s *ClientService) CreateClient(client Client) (Client, error) {
 }
 
 // GetClient retrieves a client by ID
-<<<<<<< HEAD
-func (s *Clientservice) GetClient(clientID string) (Client, error) {
-    // Validate client ID
-    if clientID == "" {
-        return Client{}, fmt.Errorf("client ID cannot be empty")
-    }
-    
-    // Call repository to get client
-    client, err := s.repo.GetClientByID(clientID)
-    if err != nil {
-        return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
-    }
-    
-    return client, nil
-=======
 func (s *ClientService) GetClient(clientID string) (Client, error) {
 	if clientID == "" {
 		return Client{}, fmt.Errorf("client ID cannot be empty")
@@ -92,7 +72,6 @@ func (s *ClientService) GetClient(clientID string) (Client, error) {
 	}
 
 	return client, nil
->>>>>>> origin/austin
 }
 
 // UpdateClient updates client information
