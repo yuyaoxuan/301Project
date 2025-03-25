@@ -4,6 +4,7 @@ package user
 import (
 	"errors"
 	"fmt"
+
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -40,12 +41,23 @@ func (s *UserService) CreateUser(firstName, lastName, email, password, role stri
 }
 
 // DisableUser service function
-func (s *UserService) DisableUser(userID string) error {
-	err := s.repo.DisableUser(userID)
+func (s *UserService) DisableUser(targetUserID string, requesterID int, requesterRole string) error {
+	targetUser, err := s.repo.GetUserByID(targetUserID)
 	if err != nil {
-		return fmt.Errorf("failed to disable user: %v", err)
+		return err
 	}
-	return nil
+
+	// Rule 1: Prevent root admin deletion
+	if targetUser.Role == "Admin" && targetUser.ID == 1 {
+		return errors.New("cannot delete root admin")
+	}
+
+	// Rule 2: Only root admin can delete other admins
+	if targetUser.Role == "Admin" && requesterID != 1 {
+		return errors.New("only root admin can delete other admins")
+	}
+
+	return s.repo.DisableUser(targetUserID)
 }
 
 // Update user details

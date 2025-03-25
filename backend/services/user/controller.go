@@ -1,11 +1,14 @@
 package user
+
 //First layer interface API calls and response first comes in
 // Controller - > Service - > Repo
 import (
 	"encoding/json"
 	"net/http"
-	"golang.org/x/crypto/bcrypt"
+	"strconv"
+
 	"github.com/gorilla/mux"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // CreateUserHandler handles the HTTP request to create a user
@@ -34,17 +37,22 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(createdUser)
 }
-// To Disable User 
+
+// To Disable User
 func DisableUserHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	userID := vars["userId"]
+	targetUserID := vars["userId"]
+
+	// Extract requester info from JWT claims
+	requesterID, _ := strconv.Atoi(r.Header.Get("UserID"))
+	requesterRole := r.Header.Get("Role")
 
 	repo := NewUserRepository()
 	service := NewUserService(repo)
 
-	err := service.DisableUser(userID)
+	err := service.DisableUser(targetUserID, requesterID, requesterRole)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusForbidden)
 		return
 	}
 
@@ -77,7 +85,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("User updated successfully"))
 }
 
-//Authenticate User 
+// Authenticate User
 func AuthenticateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var credentials struct {
 		Email    string `json:"email"`
@@ -120,7 +128,7 @@ func AuthenticateUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(map[string]string{"token": token})
 }
 
-//Reset password
+// Reset password
 func ResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 	var resetRequest struct {
 		Email       string `json:"email"`

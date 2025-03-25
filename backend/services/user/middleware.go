@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 )
@@ -22,7 +23,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 
 		// Set user ID and role in request context (optional)
-		r.Header.Set("UserID", string(claims.UserID))
+		r.Header.Set("UserID", fmt.Sprintf("%d", claims.UserID))
 		r.Header.Set("Role", claims.Role)
 
 		next.ServeHTTP(w, r)
