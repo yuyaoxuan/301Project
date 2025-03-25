@@ -3,6 +3,7 @@ package agentClient
 import (
 	"backend/database"
 	"database/sql"
+	"fmt"
 	"log"
 )
 
@@ -60,7 +61,32 @@ func (r *AgentClientRepository) ClientExists(clientID string) (bool, error) {
 	return true, nil
 }
 
+// IsAgentNull checks if the agent ID for a given client is NULL
+func (r *AgentClientRepository) IsAgentNull(clientID string) (bool, error) {
+	query := `SELECT id FROM agent_client WHERE client_id = ?`
+	var agentID *int
+
+	err := database.DB.QueryRow(query, clientID).Scan(&agentID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("client with ID %s not found", clientID)
+		}
+		return false, err
+	}
+
+	return agentID == nil, nil
+}
+
 func (r *AgentClientRepository) UpdateAgentToClient(clientID string, newID int) error {
+	// Check if the agent ID is NULL
+	isNull,user_id_err := r.IsAgentNull(clientID)
+	if user_id_err != nil  {
+		return user_id_err
+	}
+	if !isNull {
+		return fmt.Errorf("agent is already assigned to client %s", clientID)
+	}
+
 	query := `UPDATE agent_client SET id = ? WHERE client_id = ?`
 	_, err := database.DB.Exec(query, newID, clientID)
 	return err
@@ -88,7 +114,7 @@ func (r *AgentClientRepository) GetUnassignedClients() ([]AgentClient, error) {
 }
 
 func (r *AgentClientRepository) GetAllAgents() ([]Agent, error) {
-	query := `SELECT id, first_name, last_name, email, role FROM users`
+	query := `SELECT id, first_name, last_name, email, role FROM users WHERE role = 'Agent'`
 	rows, err := database.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -106,4 +132,16 @@ func (r *AgentClientRepository) GetAllAgents() ([]Agent, error) {
 	}
 
 	return agents, nil
+}
+
+
+func (r *AgentClientRepository) IsAgent(userID int) (bool, error) {
+	var role string
+	query := `SELECT role FROM users WHERE id = ?`
+	err := database.DB.QueryRow(query, userID).Scan(&role)
+	if err != nil {
+		return false, fmt.Errorf("failed to retrieve user role: %v", err)
+	}
+
+	return role == "Agent", nil
 }

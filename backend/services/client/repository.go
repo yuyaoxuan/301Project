@@ -62,7 +62,7 @@ func (r *ClientRepository) InitClientTables() {
 }
 
 // CreateAccount inserts a new account into the database
-func (r *ClientRepository) CreateClient(client Client, ) (Client, error) {
+func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, error) {
 
 	// Generate a unique client ID if one isn't provided
 	if client.ClientID == "" {
@@ -111,14 +111,7 @@ func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
 		}
 		return false, err
 	}
-
-	id, err := result.LastInsertId()
-	if err != nil {
-		return Account{}, fmt.Errorf("failed to retrieve inserted account ID: %v", err)
-	}
-
-	account.AccountID = int(id)
-	return account, nil
+	return true, nil
 }
 
 // GetClientByID retrieves a client by their ID
