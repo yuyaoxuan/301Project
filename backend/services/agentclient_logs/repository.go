@@ -42,7 +42,7 @@ func (r *AgentClientLogRepository) CreateAgentClientLog(agentID int, clientID st
 		AgentID:        agentID,
 		ClientID:       clientID,
 		Action:         action,
-		ModifiedFields: map[string]interface{}{"log_type": "client", "details": modifiedFields},
+		ModifiedFields: map[string]interface{}{"log_type": "client", "details": modifiedFields["details"]},
 		// No need to pass Timestamp here, MySQL will fill it automatically
 	}
 
@@ -154,8 +154,8 @@ func (r *AgentClientLogRepository) LogAccountChange(agentID int, clientID string
 	logData := AgentClientLog{
 		AgentID:        agentID,
 		ClientID:       clientID,
-		Action:         action,                                                                         // "Create", "Update", "Delete"
-		ModifiedFields: map[string]interface{}{"log_type": "bank_account", "details": bankAccountInfo}, // "log_type": "bank_account"
+		Action:         action,                                                                                    // "Create", "Update", "Delete"
+		ModifiedFields: map[string]interface{}{"log_type": "bank_account", "details": bankAccountInfo["details"]}, // "log_type": "bank_account"
 		// Don't manually set Timestamp, MySQL will handle it with CURRENT_TIMESTAMP
 	}
 
