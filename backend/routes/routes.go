@@ -23,20 +23,19 @@ func SetupRoutes() *mux.Router {
 	r.HandleFunc("/users", user.CreateUserHandler).Methods("POST")
 
 	// CLIENT ROUTES
-	r.HandleFunc("/clients/{agent_id}", client.CreateClientHandler).Methods("POST")
-	
-	// ACCOUNT Routes
-	r.HandleFunc("/accounts", account.CreateAccountHandler).Methods("POST")
-	r.HandleFunc("/accounts/{account_id}", account.DeleteAccountHandler).Methods("DELETE")
-	
-	// agentClient routes 
-	r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT") 
-	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT") 
-	r.HandleFunc("/api/clients", client.CreateClientHandler).Methods("POST")
+	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler).Methods("POST")
     r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler).Methods("GET")
     r.HandleFunc("/api/clients/{clientId}", client.UpdateClientHandler).Methods("PUT")
     r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler).Methods("DELETE")
     r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler).Methods("POST")
+	
+	// ACCOUNT Routes
+	r.HandleFunc("/api/accounts", account.CreateAccountHandler).Methods("POST")
+	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler).Methods("DELETE")
+	
+	// agentClient routes 
+	// r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT") 
+	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
 
 	return r
 }
