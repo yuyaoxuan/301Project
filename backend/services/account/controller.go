@@ -19,7 +19,7 @@ func CreateAccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Initialize repository & service TODO: do we need seperate for accounts?
+	// Initialize repository & service 
 	repo := NewAccountRepository()  // ✅ This ensures the table exists before inserting data
 	service := NewAccountService(repo)
 
@@ -45,7 +45,7 @@ func DeleteAccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	 }
 
-	// Initialize repository & service TODO: do we need seperate for accounts?
+	// Initialize repository & service 
 	repo := NewAccountRepository()  // ✅ This ensures the table exists before inserting data
 	service := NewAccountService(repo)
 

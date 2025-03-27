@@ -1,7 +1,10 @@
 package client
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"net/http"
 	"regexp"
 	"time"
 )
@@ -36,7 +39,6 @@ func (s *ClientService) CreateClient(client Client, AgentID int) (Client, error)
 		return Client{}, fmt.Errorf("agent's id not found")
 	}
 
-
 	if err := validateClient(client); err != nil {
 		return Client{}, err
 	}
@@ -55,6 +57,39 @@ func (s *ClientService) CreateClient(client Client, AgentID int) (Client, error)
 	createdClient, err := s.repo.CreateClient(client, AgentID)
 	if err != nil {
 		return Client{}, fmt.Errorf("failed to create client: %v", err)
+	}
+
+	// Define the modified fields (for logging purposes)
+	modifiedFields := map[string]interface{}{
+		"name":         client.FirstName + " " + client.LastName,
+		"email":        client.Email,
+		"address":      client.Address,
+		"phone_number": client.Phone,
+	}
+
+	// Prepare the log data to be sent
+	logData := map[string]interface{}{
+		"agent_id":      AgentID,
+		"client_id":     createdClient.ClientID,
+		"action":        "Create",
+		"modified_fields": modifiedFields,
+	}
+
+	// Marshal the log data into JSON
+	logJSON, err := json.Marshal(logData)
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to marshal log data: %v", err)
+	}
+
+	// Send the log data to the logging API
+	resp, err := http.Post("http://localhost:8080/agentclient_logs", "application/json", bytes.NewBuffer(logJSON))
+	if err != nil {
+		return Client{}, fmt.Errorf("failed to send log data to API: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return Client{}, fmt.Errorf("logging API responded with status: %v", resp.Status)
 	}
 
 	return createdClient, nil

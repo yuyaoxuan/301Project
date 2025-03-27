@@ -151,7 +151,12 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 	if err != nil {
 		return Client{}, fmt.Errorf("failed to insert client: %v", err)
 	}
-	
+
+	// Commit the transaction
+	if err = tx.Commit(); err != nil {
+		return Client{}, fmt.Errorf("failed to commit transaction: %v", err)
+	}
+
 	// ✅ Insert into agent_client with agent_id
 	agentClientQuery := `
 	INSERT INTO agent_client 
@@ -163,20 +168,12 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 		return Client{}, fmt.Errorf("failed to insert into agent_client: %v", err)
 	}
 
-	// Commit the transaction
-	if err = tx.Commit(); err != nil {
-		return Client{}, fmt.Errorf("failed to commit transaction: %v", err)
-	}
-
 	return client, nil
 }
 
 func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
-	query := `SELECT 1 FROM users WHERE id = ?`
+	query := `SELECT 1 FROM users WHERE id = ? AND role = 'agent'`
 	// check with agent exisit 
-
-	// to-do: need to check if user is agent or admin 
-
 	var exists int
 	err := database.DB.QueryRow(query, AgentID).Scan(&exists)
 	if err != nil {

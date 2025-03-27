@@ -42,6 +42,9 @@ func (r *AgentClientRepository) InitAgentClientTables() {
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE SET NULL
 	);`
 
+	// to-do, possible to change this into api call to update this table when smth is deleted
+	// den can map agent_id 
+
 	_, err := database.DB.Exec(query)
 	if err != nil {	
 		log.Fatal("❌ Error creating agent client table:", err)
