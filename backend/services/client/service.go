@@ -18,19 +18,19 @@ var validGenders = map[string]bool{
 
 // ClientService struct to interact with the repository layer
 type ClientService struct {
-	repo *ClientRepository
+	repo            *ClientRepository
 	ObserverManager *observer.ObserverManager
 }
 
 // NewClientService initializes the client service
-func NewClientService(repo *ClientRepository) *ClientService {
+func NewClientService(repo *ClientRepository, observerManager *observer.ObserverManager) *ClientService {
 	return &ClientService{
-        repo: repo,
-        ObserverManager: &observer.ObserverManager{}, // Initialize with an empty ObserverManager
-    }
+		repo:            repo,
+		ObserverManager: observerManager, // Pass the ObserverManager here
+	}
 }
 
-// CreateUser processes user creation request
+// CreateClient processes user creation request
 func (s *ClientService) CreateClient(client models.Client, AgentID int) (models.Client, error) {
 	// ✅ Check if agent exists
 	exists, err := s.repo.AgentExists(AgentID)
@@ -62,13 +62,8 @@ func (s *ClientService) CreateClient(client models.Client, AgentID int) (models.
 		return models.Client{}, fmt.Errorf("failed to create client: %v", err)
 	}
 
-	// Add nil check
-    if s.ObserverManager != nil {
-		// Prepare the client data to be sent to the observer manager
-		// `client` object here contains all the client details, which will be sent for logging/notification
-        s.ObserverManager.NotifyClientCreate(AgentID, createdClient.ClientID, &createdClient)
-    }
-	
+	s.ObserverManager.NotifyClientCreate(AgentID, createdClient.ClientID, &createdClient)
+
 	return createdClient, nil
 }
 
@@ -87,7 +82,7 @@ func (s *ClientService) GetClient(clientID string) (models.Client, error) {
 }
 
 // UpdateClient updates client information
-func (s *ClientService) UpdateClient(client models.Client) (models.Client, error) {
+func (s *ClientService) UpdateClient(client models.Client, AgentID int) (models.Client, error) {
 	if err := validateClient(client); err != nil {
 		return models.Client{}, err
 	}
@@ -95,6 +90,11 @@ func (s *ClientService) UpdateClient(client models.Client) (models.Client, error
 	updatedClient, err := s.repo.UpdateClient(client)
 	if err != nil {
 		return models.Client{}, fmt.Errorf("failed to update client: %v", err)
+	}
+
+	// Notify observers after client update
+	if s.ObserverManager != nil {
+		s.ObserverManager.NotifyClientUpdate(AgentID, client.ClientID, &client, &updatedClient)
 	}
 
 	return updatedClient, nil
@@ -109,6 +109,11 @@ func (s *ClientService) DeleteClient(clientID string) error {
 	err := s.repo.DeleteClient(clientID)
 	if err != nil {
 		return fmt.Errorf("failed to delete client: %v", err)
+	}
+
+	// Notify observers after client deletion
+	if s.ObserverManager != nil {
+		s.ObserverManager.NotifyClientDelete(0, clientID, nil)
 	}
 
 	return nil
@@ -184,7 +189,7 @@ func validateClient(client models.Client) error {
 	if err := validateLocation(client.State, "state"); err != nil {
 		return err
 	}
-	
+
 	// Country validation
 	if len(client.Country) < 2 || len(client.Country) > 50 {
 		return fmt.Errorf("country must be between 2 and 50 characters")

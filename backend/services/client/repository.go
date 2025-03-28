@@ -2,6 +2,7 @@ package client
 
 import (
 	"backend/database"
+	"backend/services/observer"
 	"database/sql"
 	"fmt"
 	"log"
@@ -27,11 +28,13 @@ import (
 // }
 
 // ClientRepository struct for interacting with the database
-type ClientRepository struct{}
+type ClientRepository struct {
+	ObserverManager *observer.ObserverManager
+}
 
 // NewClientRepository initializes a new ClientRepository
-func NewClientRepository() *ClientRepository {
-	repo := &ClientRepository{}
+func NewClientRepository(observerManager *observer.ObserverManager) *ClientRepository {
+	repo := &ClientRepository{ObserverManager: observerManager}
 	repo.InitClientTables() // Ensure tables exist when the repository is created
 	return repo
 }

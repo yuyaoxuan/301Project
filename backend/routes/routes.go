@@ -13,7 +13,7 @@ import (
 )
 
 // SetupRoutes initializes the router and returns it
-func SetupRoutes() *mux.Router {
+func SetupRoutes(clientService *client.ClientService, accountService *account.AccountService) *mux.Router {
 	r := mux.NewRouter()
 
 	// Health Check Route
@@ -26,18 +26,18 @@ func SetupRoutes() *mux.Router {
 	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                    // Register User
 
 	// CLIENT ROUTES
-	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler).Methods("POST")
-    r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler).Methods("GET")
-    r.HandleFunc("/api/clients/{clientId}", client.UpdateClientHandler).Methods("PUT")
-    r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler).Methods("DELETE")
-    r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler).Methods("POST")
-	
+	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
+	r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler(clientService)).Methods("GET")
+	r.HandleFunc("/api/clients/{agent_id}/{clientId}", client.UpdateClientHandler(clientService)).Methods("PUT")
+	r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler(clientService)).Methods("DELETE")
+	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
+
 	// ACCOUNT Routes
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler).Methods("DELETE")
-	
-	// agentClient routes 
-	// r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT") 
+
+	// agentClient routes
+	// r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT")
 	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
 
 	// Protected Routes (Require JWT)
