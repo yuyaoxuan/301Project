@@ -1,6 +1,7 @@
 package client
 
 import (
+	"backend/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -10,7 +11,7 @@ import (
 
 // CreateClientHandler handles the HTTP request to create a client
 func CreateClientHandler(w http.ResponseWriter, r *http.Request) {
-	var client Client
+	var client models.Client
 
 	vars := mux.Vars(r)
 	AgentID, stringToInt_err := strconv.Atoi(vars["agent_id"])
@@ -75,7 +76,7 @@ func UpdateClientHandler(w http.ResponseWriter, r *http.Request) {
 	clientID := vars["clientId"]
 	
 	// Decode JSON request body
-	var client Client
+	var client models.Client
 	err := json.NewDecoder(r.Body).Decode(&client)
 	if err != nil {
 		http.Error(w, "Invalid request payload", http.StatusBadRequest)

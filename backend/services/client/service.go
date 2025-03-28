@@ -1,10 +1,9 @@
 package client
 
 import (
-	"bytes"
-	"encoding/json"
+	"backend/models"
+	"backend/services/observer"
 	"fmt"
-	"net/http"
 	"regexp"
 	"time"
 )
@@ -20,104 +19,82 @@ var validGenders = map[string]bool{
 // ClientService struct to interact with the repository layer
 type ClientService struct {
 	repo *ClientRepository
+	ObserverManager *observer.ObserverManager
 }
 
 // NewClientService initializes the client service
 func NewClientService(repo *ClientRepository) *ClientService {
-	return &ClientService{repo: repo}
+	return &ClientService{
+        repo: repo,
+        ObserverManager: &observer.ObserverManager{}, // Initialize with an empty ObserverManager
+    }
 }
 
 // CreateUser processes user creation request
-func (s *ClientService) CreateClient(client Client, AgentID int) (Client, error) {
+func (s *ClientService) CreateClient(client models.Client, AgentID int) (models.Client, error) {
 	// ✅ Check if agent exists
 	exists, err := s.repo.AgentExists(AgentID)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to check agent existence: %v", err)
+		return models.Client{}, fmt.Errorf("failed to check agent existence: %v", err)
 	}
 
 	if !exists {
-		return Client{}, fmt.Errorf("agent's id not found")
+		return models.Client{}, fmt.Errorf("agent's id not found")
 	}
 
 	if err := validateClient(client); err != nil {
-		return Client{}, err
+		return models.Client{}, err
 	}
 
 	// Check for existing email
 	if exists, err := s.repo.EmailExists(client.Email); err != nil || exists {
-		return Client{}, fmt.Errorf("email address already exists")
+		return models.Client{}, fmt.Errorf("email address already exists")
 	}
 
 	// Check for existing phone
 	if exists, err := s.repo.PhoneExists(client.Phone); err != nil || exists {
-		return Client{}, fmt.Errorf("phone number already exists")
+		return models.Client{}, fmt.Errorf("phone number already exists")
 	}
 
 	// Call repository function to insert client
 	createdClient, err := s.repo.CreateClient(client, AgentID)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to create client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to create client: %v", err)
 	}
 
-	// Define the modified fields (for logging purposes)
-	modifiedFields := map[string]interface{}{
-		"name":         client.FirstName + " " + client.LastName,
-		"email":        client.Email,
-		"address":      client.Address,
-		"phone_number": client.Phone,
-	}
-
-	// Prepare the log data to be sent
-	logData := map[string]interface{}{
-		"agent_id":      AgentID,
-		"client_id":     createdClient.ClientID,
-		"action":        "Create",
-		"modified_fields": modifiedFields,
-	}
-
-	// Marshal the log data into JSON
-	logJSON, err := json.Marshal(logData)
-	if err != nil {
-		return Client{}, fmt.Errorf("failed to marshal log data: %v", err)
-	}
-
-	// Send the log data to the logging API
-	resp, err := http.Post("http://localhost:8080/agentclient_logs", "application/json", bytes.NewBuffer(logJSON))
-	if err != nil {
-		return Client{}, fmt.Errorf("failed to send log data to API: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return Client{}, fmt.Errorf("logging API responded with status: %v", resp.Status)
-	}
-
+	// Add nil check
+    if s.ObserverManager != nil {
+		// Prepare the client data to be sent to the observer manager
+		// `client` object here contains all the client details, which will be sent for logging/notification
+        s.ObserverManager.NotifyClientCreate(AgentID, createdClient.ClientID, &createdClient)
+    }
+	
 	return createdClient, nil
 }
 
 // GetClient retrieves a client by ID
-func (s *ClientService) GetClient(clientID string) (Client, error) {
+func (s *ClientService) GetClient(clientID string) (models.Client, error) {
 	if clientID == "" {
-		return Client{}, fmt.Errorf("client ID cannot be empty")
+		return models.Client{}, fmt.Errorf("client ID cannot be empty")
 	}
 
 	client, err := s.repo.GetClientByID(clientID)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to retrieve client: %v", err)
 	}
 
 	return client, nil
 }
 
 // UpdateClient updates client information
-func (s *ClientService) UpdateClient(client Client) (Client, error) {
+func (s *ClientService) UpdateClient(client models.Client) (models.Client, error) {
 	if err := validateClient(client); err != nil {
-		return Client{}, err
+		return models.Client{}, err
 	}
 
 	updatedClient, err := s.repo.UpdateClient(client)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to update client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to update client: %v", err)
 	}
 
 	return updatedClient, nil
@@ -159,7 +136,7 @@ func (s *ClientService) VerifyClient(clientID string, nric string) error {
 }
 
 // Helper function to validate client data
-func validateClient(client Client) error {
+func validateClient(client models.Client) error {
 	// Name validations
 	if err := validateName(client.FirstName, "first name"); err != nil {
 		return err

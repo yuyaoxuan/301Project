@@ -5,24 +5,26 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+
+	"backend/models"
 )
 
-// Client struct represents a client in the system
-type Client struct {
-	ClientID           string `json:"client_id"`
-	FirstName          string `json:"first_name"`
-	LastName           string `json:"last_name"`
-	DOB                string `json:"dob"`
-	Gender             string `json:"gender"`
-	Email              string `json:"email"`
-	Phone              string `json:"phone"`
-	Address            string `json:"address"`
-	City               string `json:"city"`
-	State              string `json:"state"`
-	Country            string `json:"country"`
-	PostalCode         string `json:"postal_code"`
-	VerificationStatus string `json:"verification_status"`
-}
+// // Client struct represents a client in the system
+// type Client struct {
+// 	ClientID           string `json:"client_id"`
+// 	FirstName          string `json:"first_name"`
+// 	LastName           string `json:"last_name"`
+// 	DOB                string `json:"dob"`
+// 	Gender             string `json:"gender"`
+// 	Email              string `json:"email"`
+// 	Phone              string `json:"phone"`
+// 	Address            string `json:"address"`
+// 	City               string `json:"city"`
+// 	State              string `json:"state"`
+// 	Country            string `json:"country"`
+// 	PostalCode         string `json:"postal_code"`
+// 	VerificationStatus string `json:"verification_status"`
+// }
 
 // ClientRepository struct for interacting with the database
 type ClientRepository struct{}
@@ -101,13 +103,13 @@ func (r *ClientRepository) PhoneExists(phone string) (bool, error) {
 }
 
 // CreateClient inserts a new client into the database
-func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, error) {
+func (r *ClientRepository) CreateClient(client models.Client, AgentID int) (models.Client, error) {
 	var currentValue int
 
 	// Begin a transaction to ensure atomicity
 	tx, err := database.DB.Begin()
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to begin transaction: %v", err)
+		return models.Client{}, fmt.Errorf("failed to begin transaction: %v", err)
 	}
 	defer func() {
 		if err != nil {
@@ -119,7 +121,7 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 	query := `SELECT value FROM counter WHERE name = 'client' FOR UPDATE`
 	err = tx.QueryRow(query).Scan(&currentValue)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to get client counter: %v", err)
+		return models.Client{}, fmt.Errorf("failed to get client counter: %v", err)
 	}
 
 	// Increment the counter and generate a new client ID
@@ -130,7 +132,7 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 	updateQuery := `UPDATE counter SET value = ? WHERE name = 'client'`
 	_, err = tx.Exec(updateQuery, newValue)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to update client counter: %v", err)
+		return models.Client{}, fmt.Errorf("failed to update client counter: %v", err)
 	}
 
 	// Set default verification status
@@ -141,7 +143,7 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
         INSERT INTO client 
         (client_id, first_name, last_name, dob, gender, email, phone, address, city, state, country, postal_code, verification_status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-	
+
 	_, err = tx.Exec(insertQuery,
 		client.ClientID, client.FirstName, client.LastName, client.DOB,
 		client.Gender, client.Email, client.Phone, client.Address,
@@ -149,12 +151,12 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 		client.VerificationStatus,
 	)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to insert client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to insert client: %v", err)
 	}
 
 	// Commit the transaction
 	if err = tx.Commit(); err != nil {
-		return Client{}, fmt.Errorf("failed to commit transaction: %v", err)
+		return models.Client{}, fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
 	// ✅ Insert into agent_client with agent_id
@@ -162,10 +164,10 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 	INSERT INTO agent_client 
 	(client_id, id) 
 	VALUES (?, ?)`
-	
+
 	_, err = database.DB.Exec(agentClientQuery, client.ClientID, AgentID)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to insert into agent_client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to insert into agent_client: %v", err)
 	}
 
 	return client, nil
@@ -173,7 +175,7 @@ func (r *ClientRepository) CreateClient(client Client, AgentID int) (Client, err
 
 func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
 	query := `SELECT 1 FROM users WHERE id = ? AND role = 'agent'`
-	// check with agent exisit 
+	// check with agent exisit
 	var exists int
 	err := database.DB.QueryRow(query, AgentID).Scan(&exists)
 	if err != nil {
@@ -186,10 +188,10 @@ func (r *ClientRepository) AgentExists(AgentID int) (bool, error) {
 }
 
 // GetClientByID retrieves a client by their ID
-func (r *ClientRepository) GetClientByID(clientID string) (Client, error) {
+func (r *ClientRepository) GetClientByID(clientID string) (models.Client, error) {
 	query := `SELECT * FROM client WHERE client_id = ?`
 
-	var client Client
+	var client models.Client
 	err := database.DB.QueryRow(query, clientID).Scan(
 		&client.ClientID, &client.FirstName, &client.LastName,
 		&client.DOB, &client.Gender, &client.Email,
@@ -200,36 +202,36 @@ func (r *ClientRepository) GetClientByID(clientID string) (Client, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return Client{}, fmt.Errorf("client with ID %s not found", clientID)
+			return models.Client{}, fmt.Errorf("client with ID %s not found", clientID)
 		}
-		return Client{}, fmt.Errorf("failed to retrieve client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to retrieve client: %v", err)
 	}
 
 	return client, nil
 }
 
 // UpdateClient updates an existing client's information
-func (r *ClientRepository) UpdateClient(client Client) (Client, error) {
+func (r *ClientRepository) UpdateClient(client models.Client) (models.Client, error) {
 	// Check if client exists
 	_, err := r.GetClientByID(client.ClientID)
 	if err != nil {
-		return Client{}, err
+		return models.Client{}, err
 	}
 
 	// Check email uniqueness if changed
 	var currentEmail string
 	err = database.DB.QueryRow("SELECT email FROM client WHERE client_id = ?", client.ClientID).Scan(&currentEmail)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to retrieve current email: %v", err)
+		return models.Client{}, fmt.Errorf("failed to retrieve current email: %v", err)
 	}
 
 	if currentEmail != client.Email {
 		exists, err := r.EmailExists(client.Email)
 		if err != nil {
-			return Client{}, err
+			return models.Client{}, err
 		}
 		if exists {
-			return Client{}, fmt.Errorf("email address already exists")
+			return models.Client{}, fmt.Errorf("email address already exists")
 		}
 	}
 
@@ -237,16 +239,16 @@ func (r *ClientRepository) UpdateClient(client Client) (Client, error) {
 	var currentPhone string
 	err = database.DB.QueryRow("SELECT phone FROM client WHERE client_id = ?", client.ClientID).Scan(&currentPhone)
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to retrieve current phone: %v", err)
+		return models.Client{}, fmt.Errorf("failed to retrieve current phone: %v", err)
 	}
 
 	if currentPhone != client.Phone {
 		exists, err := r.PhoneExists(client.Phone)
 		if err != nil {
-			return Client{}, err
+			return models.Client{}, err
 		}
 		if exists {
-			return Client{}, fmt.Errorf("phone number already exists")
+			return models.Client{}, fmt.Errorf("phone number already exists")
 		}
 	}
 
@@ -264,7 +266,7 @@ func (r *ClientRepository) UpdateClient(client Client) (Client, error) {
 	)
 
 	if err != nil {
-		return Client{}, fmt.Errorf("failed to update client: %v", err)
+		return models.Client{}, fmt.Errorf("failed to update client: %v", err)
 	}
 
 	// Retrieve the updated client to return

@@ -7,6 +7,7 @@ import (
 // UserService struct to interact with the repository layer
 type AccountService struct {
 	repo *AccountRepository
+	// ObserverManager *observer.ObserverManager
 }
 
 // NewUserService initializes the user service
@@ -29,6 +30,12 @@ func (s *AccountService) CreateAccount(account Account) (Account, error) {
 	if err != nil {
 		return Account{}, fmt.Errorf("failed to create account: %v", err)
 	}
+
+	// Notify observers about the account creation (this will trigger AccountObserver)
+	// s.ObserverManager.NotifyAccountCreate(account.AccountID, account.ClientID, &account)
+
+	// Print success message
+	// fmt.Println("Account created and observer notified.")
 
 	return createdAccount, nil
 }

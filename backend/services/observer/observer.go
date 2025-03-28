@@ -1,9 +1,10 @@
 package observer
 
 import (
+	"backend/models"
 	"backend/services/account" // Import the account package
 	"backend/services/agentclient_logs"
-	"backend/services/client" // Import the client package
+	// Import the client package
 )
 
 // LogObserver is the observer interface for logging actions
@@ -19,14 +20,14 @@ type ClientObserver struct {
 }
 
 func (co *ClientObserver) NotifyCreate(agentID int, clientID string, object interface{}) {
-	client := object.(*client.Client) // Use client type from the client package
+	client := object.(*models.Client) // Use client type from the client package
 	// Call the AgentClientLogService to create the log for client creation
 	co.LogService.LogAgentClientAction(agentID, clientID, "Create", map[string]interface{}{"details": client})
 }
 
 func (co *ClientObserver) NotifyUpdate(agentID int, clientID string, before, after interface{}) {
-	beforeClient := before.(*client.Client) // Use client type from the client package
-	afterClient := after.(*client.Client)   // Use client type from the client package
+	beforeClient := before.(*models.Client) // Use client type from the client package
+	afterClient := after.(*models.Client)   // Use client type from the client package
 	// Prepare the modified fields (before and after comparison)
 	changes := Compare(beforeClient, afterClient)
 	// Call the AgentClientLogService to create the log for client update
@@ -34,7 +35,7 @@ func (co *ClientObserver) NotifyUpdate(agentID int, clientID string, before, aft
 }
 
 func (co *ClientObserver) NotifyDelete(agentID int, clientID string, object interface{}) {
-	client := object.(*client.Client) // Use client type from the client package
+	client := object.(*models.Client) // Use client type from the client package
 	// Call the AgentClientLogService to create the log for client deletion
 	co.LogService.LogAgentClientAction(agentID, clientID, "Delete", map[string]interface{}{"details": client})
 }
