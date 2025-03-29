@@ -17,8 +17,20 @@ type User struct {
 	Status    string `json:"status"`
 }
 
-// UserRepository struct for interacting with database
 type UserRepository struct{}
+
+// UserRepository struct for interacting with database
+// GetUserByID fetches a user from the database using their ID
+func (r *UserRepository) GetUserByID(userID string) (User, error) {
+	var user User
+	query := "SELECT id, first_name, last_name, email, role, password, status FROM users WHERE id = ?"
+	err := database.DB.QueryRow(query, userID).Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Role, &user.Password, &user.Status)
+	if err != nil {
+		return User{}, fmt.Errorf("failed to fetch user by ID: %v", err)
+	}
+	return user, nil
+}
+
 
 // NewUserRepository initializes a new UserRepository
 func NewUserRepository() *UserRepository {
