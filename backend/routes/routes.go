@@ -20,8 +20,8 @@ func SetupRoutes() *mux.Router {
 
 	// Public Routes (No Authentication Needed)
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                    // Register User
-
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                     // Register User
+	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")
 	// Protected Routes (Require JWT)
 	protected := r.PathPrefix("/api").Subrouter()
 	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
@@ -45,6 +45,9 @@ func SetupRoutes() *mux.Router {
 
 	// // Delete log (generalized for all types)
 	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler).Methods("DELETE")
+	protected.HandleFunc("api/users/{userId}", user.DisableUserHandler).Methods("DELETE")  // Disable User
+	protected.HandleFunc("api/users/{userId}", user.UpdateUserHandler).Methods("PUT")      // Update User
+	
 
 	return r
 }
