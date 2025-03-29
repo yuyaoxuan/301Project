@@ -47,7 +47,9 @@ func (r *UserRepository) InitUserTable() {
 		first_name VARCHAR(100) NOT NULL,
 		last_name VARCHAR(100) NOT NULL,
 		email VARCHAR(100) UNIQUE NOT NULL,
-		role ENUM('Admin', 'Agent') NOT NULL DEFAULT 'Agent'
+		password VARCHAR(255) NOT NULL,
+		role ENUM('Admin', 'Agent') NOT NULL DEFAULT 'Agent',
+		status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
 	);`
 
 	_, err := database.DB.Exec(query)
