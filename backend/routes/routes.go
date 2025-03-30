@@ -23,7 +23,8 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 
 	// Public Routes (No Authentication Needed)
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                    // Register User
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")    
+	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")// Register User
 
 	// CLIENT ROUTES
 	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
@@ -62,6 +63,9 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 
 	// // Delete log (generalized for all types)
 	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler).Methods("DELETE")
+	protected.HandleFunc("api/users/{userId}", user.DisableUserHandler).Methods("DELETE")  // Disable User
+	protected.HandleFunc("api/users/{userId}", user.UpdateUserHandler).Methods("PUT")      // Update User
+	
 
 	return r
 }
