@@ -2,6 +2,7 @@ package agentClient
 
 import (
 	"fmt"
+	"sort"
 )
 
 // UserService struct to interact with the repository layer
@@ -40,7 +41,7 @@ func (s *AgentClientService) UpdateAgentToClient(clientID string, newID int) (Ag
 }
 
 func (s *AgentClientService) AssignAgentsToUnassignedClients() error {
-	// ✅ Get all unassigned clients
+	// Get all unassigned clients
 	unassignedClients, err := s.repo.GetUnassignedClients()
 	if err != nil {
 		return fmt.Errorf("failed to get unassigned clients: %v", err)
@@ -50,7 +51,7 @@ func (s *AgentClientService) AssignAgentsToUnassignedClients() error {
 		return nil // No unassigned clients, nothing to do
 	}
 
-	// ✅ Get all agents
+	// Get all agents from users table
 	agents, err := s.repo.GetAllAgents()
 	if err != nil {
 		return fmt.Errorf("failed to get agents: %v", err)
@@ -60,28 +61,57 @@ func (s *AgentClientService) AssignAgentsToUnassignedClients() error {
 		return fmt.Errorf("no agents available to assign clients")
 	}
 
-	// ✅ Assign clients evenly among agents
-	clientCount := len(unassignedClients)
-	agentCount := len(agents)
-	clientsPerAgent := clientCount / agentCount
-	extraClients := clientCount % agentCount
+	// Get current agent client counts
+	agentClientCounts, err := s.repo.GetAgentClientCount()
+	if err != nil {
+		return fmt.Errorf("failed to get agent client counts: %v", err)
+	}
 
-	index := 0
-	for i, agent := range agents {
-		// First agent gets the extra client if division is uneven
-		numToAssign := clientsPerAgent
-		if i < extraClients {
-			numToAssign++
-		}
+	// Create agent workload data structure
+	type AgentWorkload struct {
+		Agent     Agent
+		ClientNum int
+	}
 
-		for j := 0; j < numToAssign && index < clientCount; j++ {
-			err = s.repo.UpdateAgentToClient(unassignedClients[index].ClientID, agent.ID)
-			if err != nil {
-				return fmt.Errorf("failed to assign client %s to agent %d: %v", unassignedClients[index].ClientID, agent.ID, err)
+	// Initialize workloads for all agents (including those without clients)
+	var agentWorkloads []AgentWorkload
+	for _, agent := range agents {
+		// Get count from map, which will be 0 if agent doesn't exist in the map
+		clientCount := agentClientCounts[agent.ID]
+		agentWorkloads = append(agentWorkloads, AgentWorkload{
+			Agent:     agent,
+			ClientNum: clientCount,
+		})
+	}
+
+	// Process each unassigned client
+	for _, client := range unassignedClients {
+		// Sort agents by client count (ascending) and then by ID (ascending)
+		sort.SliceStable(agentWorkloads, func(i, j int) bool {
+			if agentWorkloads[i].ClientNum == agentWorkloads[j].ClientNum {
+				return agentWorkloads[i].Agent.ID < agentWorkloads[j].Agent.ID
 			}
-			index++
+			return agentWorkloads[i].ClientNum < agentWorkloads[j].ClientNum
+		})
+
+		// Assign to agent with lowest workload
+		selectedAgent := agentWorkloads[0].Agent
+		err = s.repo.UpdateAgentToClient(client.ClientID, selectedAgent.ID)
+		if err != nil {
+			return fmt.Errorf("failed to assign client %s to agent %d: %v", 
+				client.ClientID, selectedAgent.ID, err)
 		}
+
+		// Update workload count
+		agentWorkloads[0].ClientNum++
 	}
 
 	return nil
+}
+
+func (s *AgentClientService) GetAgentIDByClientID(clientID string) (int, error) {
+    if s.repo == nil {
+        return 0, fmt.Errorf("repository is not initialized")
+    }
+    return s.repo.GetAgentIDByClientID(clientID)
 }

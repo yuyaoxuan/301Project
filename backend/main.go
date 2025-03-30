@@ -31,6 +31,7 @@ func main() {
 	// Initialize repositories
 	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Agent-client logs repo
 	agentClientRepo := agentClient.NewAgentClientRepository()
+	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
 	_ = agentClientRepo
 
 	// Create the LogService which will use the repository to log actions
@@ -48,9 +49,9 @@ func main() {
 	clientRepo := client.NewClientRepository(observerManager)            
 	clientService := client.NewClientService(clientRepo, observerManager)
 	
-	accountRepo := account.NewAccountRepository(observerManager, clientService) 
-	accountService := account.NewAccountService(accountRepo, observerManager)
-
+	accountRepo := account.NewAccountRepository(observerManager, clientRepo, agentClientRepo) 
+	accountService := account.NewAccountService(observerManager, accountRepo, agentClientService, clientService)
+	
 	// Set up routes
 	router := routes.SetupRoutes(clientService, accountService)
 	fmt.Println("Server is running on port 8080")
