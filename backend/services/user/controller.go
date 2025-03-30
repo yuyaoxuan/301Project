@@ -5,7 +5,6 @@ package user
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"golang.org/x/crypto/bcrypt"
@@ -38,27 +37,27 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(createdUser)
 }
 
-// To Disable User
-func DisableUserHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	targetUserID := vars["userId"]
+// // To Disable User
+// func DisableUserHandler(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+// 	targetUserID := vars["userId"]
 
-	// Extract requester info from JWT claims
-	requesterID, _ := strconv.Atoi(r.Header.Get("UserID"))
-	requesterRole := r.Header.Get("Role")
+// 	// Extract requester info from JWT claims
+// 	requesterID, _ := strconv.Atoi(r.Header.Get("UserID"))
+// 	requesterRole := r.Header.Get("Role")
 
-	repo := NewUserRepository()
-	service := NewUserService(repo)
+// 	repo := NewUserRepository()
+// 	service := NewUserService(repo)
 
-	err := service.DisableUser(targetUserID, requesterID, requesterRole)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusForbidden)
-		return
-	}
+// 	err := service.DisableUser(targetUserID, requesterID, requesterRole)
+// 	if err != nil {
+// 		http.Error(w, err.Error(), http.StatusForbidden)
+// 		return
+// 	}
 
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("User disabled successfully"))
-}
+// 	w.WriteHeader(http.StatusOK)
+// 	w.Write([]byte("User disabled successfully"))
+// }
 
 // To update user
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request) {

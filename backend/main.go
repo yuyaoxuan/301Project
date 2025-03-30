@@ -6,10 +6,15 @@ import (
 	"net/http"
 
 	"backend/database"
-	"backend/routes"                    // Import routes from the routes package
+	"backend/routes"           // Import routes from the routes package
+	"backend/services/account" // Import acciunt service to initialize table
+
+	"backend/services/agentClient"
+	"backend/services/client" // Import client service to initialize table
+	"backend/services/user"   // Import user service to initialize table
+
 	"backend/services/agentclient_logs" // Import agent-client logs to initialize its table
 	"backend/services/observer"         // import observer
-	"backend/services/user"             // Import user service to initialize table
 )
 
 func main() {
@@ -20,15 +25,16 @@ func main() {
 	userRepo := user.NewUserRepository() // Initializes user repo (which ensures table exists)
 	_ = userRepo                         // Avoid unused variable warning
 
-	// For the agent-client logs table (if you have other services like this)
-	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Initializes agent-client logs repo (which ensures table exists)
-	_ = agentClientLogRepo
+	// Initialize the ObserverManager
+	observerManager := &observer.ObserverManager{}
+
+	// Initialize repositories
+	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Agent-client logs repo
+	agentClientRepo := agentClient.NewAgentClientRepository()
+	_ = agentClientRepo
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo)
-
-	// Create the observer manager
-	observerManager := &observer.ObserverManager{}
 
 	// Create client and account observers, passing the LogService to them
 	clientObserver := &observer.ClientObserver{LogService: logService}
@@ -38,7 +44,15 @@ func main() {
 	observerManager.AddClientObserver(clientObserver)
 	observerManager.AddAccountObserver(accountObserver)
 
-	router := routes.SetupRoutes()
+	// Initialize repo and services
+	clientRepo := client.NewClientRepository(observerManager)            
+	clientService := client.NewClientService(clientRepo, observerManager)
+	
+	accountRepo := account.NewAccountRepository(observerManager, clientService) 
+	accountService := account.NewAccountService(accountRepo, observerManager)
+
+	// Set up routes
+	router := routes.SetupRoutes(clientService, accountService)
 	fmt.Println("Server is running on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

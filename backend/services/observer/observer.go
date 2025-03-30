@@ -1,9 +1,10 @@
 package observer
 
 import (
-	"backend/services/account" // Import the account package
+	"backend/models"
 	"backend/services/agentclient_logs"
-	"backend/services/client" // Import the client package
+	"fmt"
+	// Import the client package
 )
 
 // LogObserver is the observer interface for logging actions
@@ -19,14 +20,16 @@ type ClientObserver struct {
 }
 
 func (co *ClientObserver) NotifyCreate(agentID int, clientID string, object interface{}) {
-	client := object.(*client.Client) // Use client type from the client package
+	fmt.Println("Observer: Notifying client creation for client ID:", clientID)
+	client := object.(*models.Client) // Use client type from the client package
 	// Call the AgentClientLogService to create the log for client creation
 	co.LogService.LogAgentClientAction(agentID, clientID, "Create", map[string]interface{}{"details": client})
 }
 
 func (co *ClientObserver) NotifyUpdate(agentID int, clientID string, before, after interface{}) {
-	beforeClient := before.(*client.Client) // Use client type from the client package
-	afterClient := after.(*client.Client)   // Use client type from the client package
+	fmt.Println("Observer: Notifying client update for client ID:", clientID)
+	beforeClient := before.(*models.Client) // Use client type from the client package
+	afterClient := after.(*models.Client)   // Use client type from the client package
 	// Prepare the modified fields (before and after comparison)
 	changes := Compare(beforeClient, afterClient)
 	// Call the AgentClientLogService to create the log for client update
@@ -34,7 +37,8 @@ func (co *ClientObserver) NotifyUpdate(agentID int, clientID string, before, aft
 }
 
 func (co *ClientObserver) NotifyDelete(agentID int, clientID string, object interface{}) {
-	client := object.(*client.Client) // Use client type from the client package
+	fmt.Println("Observer: Notifying client delete for client ID:", clientID)
+	client := object.(*models.Client) // Use client type from the client package
 	// Call the AgentClientLogService to create the log for client deletion
 	co.LogService.LogAgentClientAction(agentID, clientID, "Delete", map[string]interface{}{"details": client})
 }
@@ -45,14 +49,16 @@ type AccountObserver struct {
 }
 
 func (ao *AccountObserver) NotifyCreate(agentID int, clientID string, object interface{}) {
-	account := object.(*account.Account) // Use account type from the account package
+	fmt.Println("Observer: Notifying account creation for client ID:", clientID)
+	account := object.(*models.Account) // Use account type from the account package
 	// Call the AgentClientLogService to create the log for account creation
 	ao.LogService.LogAccountChange(agentID, clientID, "Create", map[string]interface{}{"details": account})
 }
 
 func (ao *AccountObserver) NotifyUpdate(agentID int, clientID string, before, after interface{}) {
-	beforeAccount := before.(*account.Account) // Use account type from the account package
-	afterAccount := after.(*account.Account)   // Use account type from the account package
+	fmt.Println("Observer: Notifying account update for client ID:", clientID)
+	beforeAccount := before.(*models.Account) // Use account type from the account package
+	afterAccount := after.(*models.Account)   // Use account type from the account package
 	// Prepare the modified fields (before and after comparison)
 	changes := Compare(beforeAccount, afterAccount)
 	// Call the AgentClientLogService to create the log for account update
@@ -60,7 +66,8 @@ func (ao *AccountObserver) NotifyUpdate(agentID int, clientID string, before, af
 }
 
 func (ao *AccountObserver) NotifyDelete(agentID int, clientID string, object interface{}) {
-	account := object.(*account.Account) // Use account type from the account package
+	fmt.Println("Observer: Notifying account delete for client ID:", clientID)
+	account := object.(*models.Account) // Use account type from the account package
 	// Call the AgentClientLogService to create the log for account deletion
 	ao.LogService.LogAccountChange(agentID, clientID, "Delete", map[string]interface{}{"details": account})
 }

@@ -3,14 +3,17 @@ package routes
 import (
 	"net/http"
 
+	"backend/services/account" // import account service
+	"backend/services/agentClient"
 	"backend/services/agentclient_logs" // import transaction logs service
-	"backend/services/user"             // import user service
+	"backend/services/client"
+	"backend/services/user" // import user service
 
 	"github.com/gorilla/mux"
 )
 
 // SetupRoutes initializes the router and returns it
-func SetupRoutes() *mux.Router {
+func SetupRoutes(clientService *client.ClientService, accountService *account.AccountService) *mux.Router {
 	r := mux.NewRouter()
 
 	// Health Check Route
@@ -20,8 +23,23 @@ func SetupRoutes() *mux.Router {
 
 	// Public Routes (No Authentication Needed)
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")                     // Register User
-	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")    
+	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")// Register User
+
+	// CLIENT ROUTES
+	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
+	r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler(clientService)).Methods("GET")
+	r.HandleFunc("/api/clients/{agent_id}/{clientId}", client.UpdateClientHandler(clientService)).Methods("PUT")
+	r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler(clientService)).Methods("DELETE")
+	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
+
+	// ACCOUNT Routes
+	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
+	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
+
+	// agentClient routes
+	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
+
 	// Protected Routes (Require JWT)
 	protected := r.PathPrefix("/api").Subrouter()
 	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
