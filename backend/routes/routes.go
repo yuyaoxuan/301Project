@@ -33,11 +33,10 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
 
 	// ACCOUNT Routes
-	r.HandleFunc("/api/accounts", account.CreateAccountHandler).Methods("POST")
-	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler).Methods("DELETE")
+	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
+	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
 	// agentClient routes
-	// r.HandleFunc("/agentClient/{client_id}", agentClient.UpdateAgentToClientHandler).Methods("PUT")
 	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
 
 	// Protected Routes (Require JWT)

@@ -2,7 +2,6 @@ package observer
 
 import (
 	"backend/models"
-	"backend/services/account" // Import the account package
 	"backend/services/agentclient_logs"
 	"fmt"
 	// Import the client package
@@ -51,15 +50,15 @@ type AccountObserver struct {
 
 func (ao *AccountObserver) NotifyCreate(agentID int, clientID string, object interface{}) {
 	fmt.Println("Observer: Notifying account creation for client ID:", clientID)
-	account := object.(*account.Account) // Use account type from the account package
+	account := object.(*models.Account) // Use account type from the account package
 	// Call the AgentClientLogService to create the log for account creation
 	ao.LogService.LogAccountChange(agentID, clientID, "Create", map[string]interface{}{"details": account})
 }
 
 func (ao *AccountObserver) NotifyUpdate(agentID int, clientID string, before, after interface{}) {
 	fmt.Println("Observer: Notifying account update for client ID:", clientID)
-	beforeAccount := before.(*account.Account) // Use account type from the account package
-	afterAccount := after.(*account.Account)   // Use account type from the account package
+	beforeAccount := before.(*models.Account) // Use account type from the account package
+	afterAccount := after.(*models.Account)   // Use account type from the account package
 	// Prepare the modified fields (before and after comparison)
 	changes := Compare(beforeAccount, afterAccount)
 	// Call the AgentClientLogService to create the log for account update
@@ -68,7 +67,7 @@ func (ao *AccountObserver) NotifyUpdate(agentID int, clientID string, before, af
 
 func (ao *AccountObserver) NotifyDelete(agentID int, clientID string, object interface{}) {
 	fmt.Println("Observer: Notifying account delete for client ID:", clientID)
-	account := object.(*account.Account) // Use account type from the account package
+	account := object.(*models.Account) // Use account type from the account package
 	// Call the AgentClientLogService to create the log for account deletion
 	ao.LogService.LogAccountChange(agentID, clientID, "Delete", map[string]interface{}{"details": account})
 }

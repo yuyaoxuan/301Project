@@ -30,8 +30,6 @@ func main() {
 
 	// Initialize repositories
 	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Agent-client logs repo
-	clientRepo := client.NewClientRepository(observerManager)            // Client repo with observer
-	accountRepo := account.NewAccountRepository()                        // Account repo
 	agentClientRepo := agentClient.NewAgentClientRepository()
 	_ = agentClientRepo
 
@@ -46,9 +44,12 @@ func main() {
 	observerManager.AddClientObserver(clientObserver)
 	observerManager.AddAccountObserver(accountObserver)
 
-	// Initialize services
+	// Initialize repo and services
+	clientRepo := client.NewClientRepository(observerManager)            
 	clientService := client.NewClientService(clientRepo, observerManager)
-	accountService := account.NewAccountService(accountRepo)
+	
+	accountRepo := account.NewAccountRepository(observerManager, clientService) 
+	accountService := account.NewAccountService(accountRepo, observerManager)
 
 	// Set up routes
 	router := routes.SetupRoutes(clientService, accountService)

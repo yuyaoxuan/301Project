@@ -85,6 +85,3 @@ func (s *AgentClientService) AssignAgentsToUnassignedClients() error {
 
 	return nil
 }
-
-
-

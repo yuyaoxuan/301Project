@@ -2,28 +2,24 @@ package account
 
 import (
 	"backend/database"
+	"backend/models"
+	"backend/services/client"
+	"backend/services/observer"
+
 	"fmt"
 	"log"
 )
 
-type Account struct {
-	AccountID     int     `json:"account_id"`
-	ClientID      string  `json:"client_id"`
-	AccountType   string  `json:"account_type"`
-	AccountStatus string  `json:"account_status"`
-	OpeningDate   string    `json:"opening_date"`
-	InitialDeposit float64 `json:"initial_deposit"`
-	Currency      string  `json:"currency"`
-	BranchID      string  `json:"branch_id"`
+// UserRepository struct for interacting with database
+type AccountRepository struct{
+	ObserverManager *observer.ObserverManager
+	clientService *client.ClientService
+
 }
 
-
-// UserRepository struct for interacting with database
-type AccountRepository struct{}
-
 // NewClientRepository initializes a new ClientRepository
-func NewAccountRepository() *AccountRepository {
-	repo := &AccountRepository{}
+func NewAccountRepository(observerManager *observer.ObserverManager, clientService *client.ClientService) *AccountRepository {
+	repo := &AccountRepository{ObserverManager: observerManager, clientService: clientService}
 	repo.InitAccountTables() // ✅ Ensure tables exist when the repository is created
 	return repo
 }
@@ -53,14 +49,14 @@ func (r *AccountRepository) InitAccountTables() {
 }
 
 
-func (r *AccountRepository) CreateAccount(account Account) (Account, error) {
+func (r *AccountRepository) CreateAccount(account models.Account) (models.Account, error) {
 
 	clientExists, err := r.ClientExists(account.ClientID)
 	if err != nil {
-		return Account{}, fmt.Errorf("error checking if client exists: %v", err)
+		return models.Account{}, fmt.Errorf("error checking if client exists: %v", err)
 	}
 	if !clientExists {
-		return Account{}, fmt.Errorf("client with ID %s does not exist", account.ClientID)
+		return models.Account{}, fmt.Errorf("client with ID %s does not exist", account.ClientID)
 	}
 
 	query := `
@@ -74,12 +70,12 @@ func (r *AccountRepository) CreateAccount(account Account) (Account, error) {
 		account.BranchID,
 	)
 	if err != nil {
-		return Account{}, fmt.Errorf("failed to insert account: %v", err)
+		return models.Account{}, fmt.Errorf("failed to insert account: %v", err)
 	}
 
 	id, err := result.LastInsertId()
 	if err != nil {
-		return Account{}, fmt.Errorf("failed to retrieve inserted account ID: %v", err)
+		return models.Account{}, fmt.Errorf("failed to retrieve inserted account ID: %v", err)
 	}
 
 	account.AccountID = int(id)
@@ -98,13 +94,11 @@ func (r *AccountRepository) DeleteAccount(accountID int) (error) {
 }
 
 func (r *AccountRepository) ClientExists(clientID string) (bool, error) {
-	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM client WHERE client_id = ?)`
-	err := database.DB.QueryRow(query, clientID).Scan(&exists)
+	client, err := r.clientService.GetClient(clientID)
 	if err != nil {
-		return false, fmt.Errorf("failed to check client existence: %v", err)
-	}
-	return exists, nil
+        return false, fmt.Errorf("failed to check if client exists: %v", err)
+    }
+    return client.ClientID != "", nil
 }
 
 
