@@ -21,10 +21,19 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 		w.Write([]byte("API is running!"))
 	}).Methods("GET")
 
-	// Public Routes (No Authentication Needed)
+	// Protected Routes (Require JWT)
+	protected := r.PathPrefix("/api").Subrouter()
+	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
+
+	// USER ROUTES Public Routes (No Authentication Needed)
 	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")    
-	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")// Register User
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")
+	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Register User
+
+	// USER ROUTES Private Routes
+	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
+	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
+	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
 
 	// CLIENT ROUTES
 	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
@@ -37,16 +46,8 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
-	// agentClient routes
+	// AGENTCLIENT routes
 	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
-
-	// Protected Routes (Require JWT)
-	protected := r.PathPrefix("/api").Subrouter()
-	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
-
-	// protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
-	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
-	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
 
 	// // AgentClient logs routes
 	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler).Methods("GET")
@@ -63,7 +64,6 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 
 	// // Delete log (generalized for all types)
 	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler).Methods("DELETE")
-	
 
 	return r
 }
