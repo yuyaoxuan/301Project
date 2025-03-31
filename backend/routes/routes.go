@@ -31,9 +31,6 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Register User
 
 	// USER ROUTES Private Routes
-	protected.HandleFunc("api/users/{userId}", user.DisableUserHandler).Methods("DELETE") // Disable User
-	protected.HandleFunc("api/users/{userId}", user.UpdateUserHandler).Methods("PUT")     // Update User
-
 	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
 	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
 	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
