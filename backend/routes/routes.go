@@ -63,8 +63,6 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 
 	// // Delete log (generalized for all types)
 	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler).Methods("DELETE")
-	protected.HandleFunc("api/users/{userId}", user.DisableUserHandler).Methods("DELETE")  // Disable User
-	protected.HandleFunc("api/users/{userId}", user.UpdateUserHandler).Methods("PUT")      // Update User
 	
 
 	return r
