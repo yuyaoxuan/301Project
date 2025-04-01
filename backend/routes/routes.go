@@ -3,17 +3,20 @@ package routes
 import (
 	"net/http"
 
-	"backend/services/account" // import account service
-	"backend/services/agentClient"
-	"backend/services/agentclient_logs" // import transaction logs service
+	"backend/services/account"
+	"backend/services/agentclient_logs"
 	"backend/services/client"
-	"backend/services/user" // import user service
+	communicationlogs "backend/services/communication_logs"
+	"backend/services/user"
 
 	"github.com/gorilla/mux"
 )
 
-// SetupRoutes initializes the router and returns it
-func SetupRoutes(clientService *client.ClientService, accountService *account.AccountService) *mux.Router {
+func SetupRoutes(
+	clientService *client.ClientService,
+	accountService *account.AccountService,
+	agentClientLogService *agentclient_logs.AgentClientLogService,
+) *mux.Router {
 	r := mux.NewRouter()
 
 	// Health Check Route
@@ -21,49 +24,45 @@ func SetupRoutes(clientService *client.ClientService, accountService *account.Ac
 		w.Write([]byte("API is running!"))
 	}).Methods("GET")
 
+	// Public User Routes
+	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST")
+	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")
+	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")
+
 	// Protected Routes (Require JWT)
 	protected := r.PathPrefix("/api").Subrouter()
-	protected.Use(user.JWTAuthMiddleware) // Apply JWT Middleware
+	protected.Use(user.JWTAuthMiddleware)
 
-	// USER ROUTES Public Routes (No Authentication Needed)
-	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST") // Login
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")
-	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Register User
+	// User Routes (protected)
+	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")
+	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")
+	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST")
 
-	// USER ROUTES Private Routes
-	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")       // Disable User
-	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")           // Update User
-	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset Password
-
-	// CLIENT ROUTES
+	// Client Routes
 	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
 	r.HandleFunc("/api/clients/{clientId}", client.GetClientHandler(clientService)).Methods("GET")
 	r.HandleFunc("/api/clients/{agent_id}/{clientId}", client.UpdateClientHandler(clientService)).Methods("PUT")
 	r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler(clientService)).Methods("DELETE")
 	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
 
-	// ACCOUNT Routes
+	// Account Routes
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
-	// AGENTCLIENT routes
-	r.HandleFunc("/agentClient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
+	// Agent Client Log Read Routes
+	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclient_logs.GetAgentClientLogsByAgentHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs", agentclient_logs.GetAllAgentClientLogsHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/account/client/{clientID}", agentclient_logs.GetAccountLogsByClientHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/account/agent/{agentID}", agentclient_logs.GetAccountLogsByAgentHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/account", agentclient_logs.GetAllAccountLogsHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/all/client/{clientID}", agentclient_logs.GetClientAndAccountLogsByClientIDHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/all/agent/{agentID}", agentclient_logs.GetClientAndAccountLogsByAgentIDHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/all", agentclient_logs.GetAllLogsHandler(agentClientLogService)).Methods("GET")
+	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler(agentClientLogService)).Methods("DELETE")
 
-	// // AgentClient logs routes
-	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler).Methods("GET")
-	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclient_logs.GetAgentClientLogsByAgentHandler).Methods("GET")
-	r.HandleFunc("/agentclient_logs", agentclient_logs.GetAllAgentClientLogsHandler).Methods("GET") // Get all agent-client logs
-
-	// // Bank account logs routes
-	r.HandleFunc("/agentclient_logs/account/client/{clientID}", agentclient_logs.GetAccountLogsByClientHandler).Methods("GET")
-	r.HandleFunc("/agentclient_logs/account/agent/{agentID}", agentclient_logs.GetAccountLogsByAgentHandler).Methods("GET")
-	r.HandleFunc("/agentclient_logs/account", agentclient_logs.GetAllAccountLogsHandler).Methods("GET") // Get all bank account logs
-
-	// // Combined logs route (both client and bank account logs)
-	r.HandleFunc("/agentclient_logs/all", agentclient_logs.GetAllLogsHandler).Methods("GET") // Get all logs (client + bank account)
-
-	// // Delete log (generalized for all types)
-	r.HandleFunc("/agentclient_logs/{logID}", agentclient_logs.DeleteLogHandler).Methods("DELETE")
+	// Communication Log Read Routes
+	r.HandleFunc("/communication_logs/{logID}", communicationlogs.GetCommunicationLogByLogIDHandler).Methods("GET")
 
 	return r
 }
