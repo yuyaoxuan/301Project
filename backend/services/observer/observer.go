@@ -4,7 +4,6 @@ import (
 	"backend/models"
 	"backend/services/agentclient_logs"
 	"fmt"
-	// Import the client package
 )
 
 // LogObserver is the observer interface for logging actions

@@ -1,6 +1,7 @@
 package agentclient_logs
 
 import (
+	"backend/models"
 	"encoding/json"
 	"net/http"
 	"strconv"
@@ -9,210 +10,234 @@ import (
 )
 
 // CreateAgentClientLogHandler handles log creation requests for agent-client logs
-func CreateAgentClientLogHandler(w http.ResponseWriter, r *http.Request) {
-	var logData AgentClientLog
-	err := json.NewDecoder(r.Body).Decode(&logData)
-	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
+func CreateAgentClientLogHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var logData models.AgentClientLog
+		err := json.NewDecoder(r.Body).Decode(&logData)
+		if err != nil {
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
+
+		if logData.ClientID == "" {
+			http.Error(w, "Invalid client_id, must be a non-empty string", http.StatusBadRequest)
+			return
+		}
+
+		// Call the service
+		createdLog, err := service.LogAgentClientAction(logData.AgentID, logData.ClientID, logData.Action, logData.ModifiedFields)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		json.NewEncoder(w).Encode(createdLog)
 	}
-
-	// Ensure client_id is a string
-	if logData.ClientID == "" {
-		http.Error(w, "Invalid client_id, must be a non-empty string", http.StatusBadRequest)
-		return
-	}
-
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
-
-	// Call the service to log the action
-	err = service.LogAgentClientAction(logData.AgentID, logData.ClientID, logData.Action, logData.ModifiedFields)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Agent-client log created successfully"))
 }
 
 // GetAgentClientLogsByClientHandler retrieves transaction logs for a specific client
-func GetAgentClientLogsByClientHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	clientID := vars["clientID"]
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
+func GetAgentClientLogsByClientHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		clientID := vars["clientID"]
 
-	logs, err := service.GetAgentClientLogs(clientID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		logs, err := service.GetAgentClientLogs(clientID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // GetAgentClientLogsByAgentHandler retrieves agent-client logs for a specific agent
-func GetAgentClientLogsByAgentHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	agentID := vars["agentID"]
-	agentIDInt, err := strconv.Atoi(agentID)
-	if err != nil {
-		http.Error(w, "Invalid agent ID, must be an integer", http.StatusBadRequest)
-		return
+func GetAgentClientLogsByAgentHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		agentID := vars["agentID"]
+		agentIDInt, err := strconv.Atoi(agentID)
+		if err != nil {
+			http.Error(w, "Invalid agent ID, must be an integer", http.StatusBadRequest)
+			return
+		}
+
+		logs, err := service.GetAgentClientLogsByAgent(agentIDInt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
-
-	logs, err := service.GetAgentClientLogsByAgent(agentIDInt)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // GetAllAgentClientLogsHandler retrieves all agent-client logs
-func GetAllAgentClientLogsHandler(w http.ResponseWriter, r *http.Request) {
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
+func GetAllAgentClientLogsHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logs, err := service.GetAllAgentClientLogs()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	logs, err := service.GetAllAgentClientLogs()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // CreateBankAccountLogHandler handles the creation of bank account logs
-func CreateBankAccountLogHandler(w http.ResponseWriter, r *http.Request) {
-	var logData AgentClientLog
+func CreateBankAccountLogHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var logData models.AgentClientLog
+		err := json.NewDecoder(r.Body).Decode(&logData)
+		if err != nil {
+			http.Error(w, "Invalid request payload", http.StatusBadRequest)
+			return
+		}
 
-	// Decode the request body to get the log data
-	err := json.NewDecoder(r.Body).Decode(&logData)
-	if err != nil {
-		http.Error(w, "Invalid request payload", http.StatusBadRequest)
-		return
+		if logData.ClientID == "" {
+			http.Error(w, "Invalid client_id, must be a non-empty string", http.StatusBadRequest)
+			return
+		}
+
+		err = service.LogAccountChange(logData.AgentID, logData.ClientID, logData.Action, logData.ModifiedFields)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte("Bank account log created successfully"))
 	}
-
-	// Ensure client_id is not empty
-	if logData.ClientID == "" {
-		http.Error(w, "Invalid client_id, must be a non-empty string", http.StatusBadRequest)
-		return
-	}
-
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
-
-	// Call the repository function to insert the log (without timestamp)
-	err = service.LogAccountChange(logData.AgentID, logData.ClientID, logData.Action, logData.ModifiedFields)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Send success response
-	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte("Bank account log created successfully"))
 }
 
 // GetAccountLogsByClientHandler retrieves bank account logs for a specific client
-func GetAccountLogsByClientHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	clientID := vars["clientID"]
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
+func GetAccountLogsByClientHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		clientID := vars["clientID"]
 
-	logs, err := service.GetAccountLogsByClientID(clientID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		logs, err := service.GetAccountLogsByClientID(clientID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // GetAccountLogsByAgentHandler retrieves bank account logs for a specific agent
-func GetAccountLogsByAgentHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	agentID := vars["agentID"]
-	agentIDInt, err := strconv.Atoi(agentID)
-	if err != nil {
-		http.Error(w, "Invalid agent ID, must be an integer", http.StatusBadRequest)
-		return
+func GetAccountLogsByAgentHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		agentID := vars["agentID"]
+		agentIDInt, err := strconv.Atoi(agentID)
+		if err != nil {
+			http.Error(w, "Invalid agent ID, must be an integer", http.StatusBadRequest)
+			return
+		}
+
+		logs, err := service.GetAccountLogsByAgentID(agentIDInt)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
-
-	logs, err := service.GetAccountLogsByAgentID(agentIDInt)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // GetAllAccountLogsHandler retrieves all bank account transaction logs
-func GetAllAccountLogsHandler(w http.ResponseWriter, r *http.Request) {
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
+func GetAllAccountLogsHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logs, err := service.GetAllAccountLogs()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	logs, err := service.GetAllAccountLogs()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
+}
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
+// GetClientAndAccountLogsByAgentIDHandler retrieves both client and account logs for a specific agent
+func GetClientAndAccountLogsByAgentIDHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		agentID, err := strconv.Atoi(vars["agentID"])
+		if err != nil {
+			http.Error(w, "Invalid agent ID", http.StatusBadRequest)
+			return
+		}
+
+		logs, err := service.GetClientAndAccountLogsByAgentID(agentID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
+	}
+}
+
+// GetClientAndAccountLogsByClientIDHandler retrieves both client and account logs for a specific client
+func GetClientAndAccountLogsByClientIDHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		clientID := vars["clientID"]
+
+		logs, err := service.GetClientAndAccountLogsByClientID(clientID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
+	}
 }
 
 // GetAllLogsHandler retrieves all logs from the database (client and bank account logs)
-func GetAllLogsHandler(w http.ResponseWriter, r *http.Request) {
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
+func GetAllLogsHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logs, err := service.GetAllLogs()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	logs, err := service.GetAllLogs()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(logs)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(logs)
 }
 
 // DeleteLogHandler handles deleting any log by its ID
-func DeleteLogHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	logID, err := strconv.Atoi(vars["logID"]) // Extract the log ID from URL path
-	if err != nil {
-		http.Error(w, "Invalid log ID", http.StatusBadRequest)
-		return
+func DeleteLogHandler(service *AgentClientLogService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		logID, err := strconv.Atoi(vars["logID"])
+		if err != nil {
+			http.Error(w, "Invalid log ID", http.StatusBadRequest)
+			return
+		}
+
+		err = service.DeleteLog(logID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("Log deleted successfully"))
 	}
-
-	repo := NewAgentClientLogRepository()
-	service := NewAgentClientLogService(repo)
-
-	// Call the service to delete the log
-	err = service.DeleteLog(logID)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Log deleted successfully"))
 }
