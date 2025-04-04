@@ -10,6 +10,7 @@ type Account struct {
 	InitialDeposit float64 `json:"initial_deposit"`
 	Currency       string  `json:"currency"`
 	BranchID       string  `json:"branch_id"`
+	IsActive       bool `json:"is_active"`
 }
 
 // Error implements error.

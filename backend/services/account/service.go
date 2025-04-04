@@ -35,7 +35,7 @@ func (s *AccountService) ClientExists(clientID string) (bool, error) {
     return client.ClientID != "", nil
 }
 
-func (s *AccountService)  GetAgentIDByClientID(clientID string) (int, error) {
+func (s *AccountService) GetAgentIDByClientID(clientID string) (int, error) {
 	agentID, err := s.AgentClientService.GetAgentIDByClientID(clientID)
 	if err != nil {
         return 0, fmt.Errorf("failed to check if client exists: %v", err)
@@ -59,9 +59,15 @@ func (s *AccountService) CreateAccount(account models.Account) (models.Account, 
 		return models.Account{}, fmt.Errorf("failed to create account: %v", err)
 	}
 
+	// get agent info 
+	agentID, err_agentID := s.AgentClientService.GetAgentIDByClientID(account.ClientID)
+	if err_agentID != nil {
+	    return models.Account{}, fmt.Errorf("failed to check agent id existence: %d", err_agentID)
+	}
+
 	// Notify observers after client update
 	if s.ObserverManager != nil {
-		s.ObserverManager.NotifyAccountCreate(account.AccountID, account.ClientID, &account)
+		s.ObserverManager.NotifyAccountCreate(agentID, account.ClientID, &account)
 	}
 
 	return createdAccount, nil
