@@ -25,15 +25,24 @@ func main() {
 	// Initialize repositories
 	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Agent-client logs repo
 	communicationRepo := communicationlogs.NewCommunicationLogRepository()
-	agentClientRepo := agentClient.NewAgentClientRepository()
-	_ = agentClientRepo // Avoid unused variable warning
-
+	
 	// Ensure that necessary database tables are created
 	userRepo := user.NewUserRepository() // Initializes user repo (which ensures table exists)
 	_ = userRepo                         // Avoid unused variable warning
 
 	// Initialize the ObserverManager and register observers
 	observerManager := &observer.ObserverManager{}
+
+	// Initialize repo and services
+	clientRepo := client.NewClientRepository(observerManager)
+	clientService := client.NewClientService(clientRepo, observerManager)
+
+	accountRepo := account.NewAccountRepository(observerManager, clientService)
+	accountService := account.NewAccountService(accountRepo, observerManager)
+
+	agentClientRepo := agentClient.NewAgentClientRepository()
+	_ = agentClientRepo // Avoid unused variable warning
+
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)
@@ -47,13 +56,6 @@ func main() {
 	observerManager.AddClientObserver(clientObserver)
 	observerManager.AddAccountObserver(accountObserver)
 	observerManager.AddCommunicationObserver(communicationObserver)
-
-	// Initialize repo and services
-	clientRepo := client.NewClientRepository(observerManager)
-	clientService := client.NewClientService(clientRepo, observerManager)
-
-	accountRepo := account.NewAccountRepository(observerManager, clientService)
-	accountService := account.NewAccountService(accountRepo, observerManager)
 
 	// Set up routes
 	router := routes.SetupRoutes(clientService, accountService, logService)
