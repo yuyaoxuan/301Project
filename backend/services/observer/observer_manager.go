@@ -7,8 +7,9 @@ import (
 
 // ObserverManager manages the observers for client and account actions
 type ObserverManager struct {
-	clientObservers  []LogObserver
-	accountObservers []LogObserver
+	clientObservers        []LogObserver
+	accountObservers       []LogObserver
+	communicationObservers []LogObserver
 }
 
 // AddClientObserver adds a client observer to the manager
@@ -21,6 +22,12 @@ func (om *ObserverManager) AddClientObserver(observer LogObserver) {
 func (om *ObserverManager) AddAccountObserver(observer LogObserver) {
 	om.accountObservers = append(om.accountObservers, observer)
 	fmt.Println("Number of account observers after registration:", len(om.accountObservers))
+}
+
+// AddCommunicationObserver adds a communication observer to the manager
+func (om *ObserverManager) AddCommunicationObserver(observer LogObserver) {
+	om.communicationObservers = append(om.communicationObservers, observer)
+	fmt.Println("Number of communication observers after registration:", len(om.communicationObservers))
 }
 
 // NotifyClientCreate notifies all client observers to create a log
@@ -68,5 +75,14 @@ func (om *ObserverManager) NotifyAccountDelete(agentID int, clientID string, acc
 	fmt.Println("ObserverManager: Notifying account delete for client ID:", clientID)
 	for _, observer := range om.accountObservers {
 		observer.NotifyDelete(agentID, clientID, account)
+	}
+}
+
+// NotifyCommunication logs the communication via the observer
+func (om *ObserverManager) NotifyCommunication(agentID int, clientID string, log models.AgentClientLog) {
+	// Notify all communication observers
+	fmt.Println("ObserverManager: Notifying communication for client ID:", clientID)
+	for _, observer := range om.communicationObservers {
+		observer.NotifyCreate(agentID, clientID, log)
 	}
 }
