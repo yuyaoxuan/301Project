@@ -35,13 +35,15 @@ func main() {
 
 	// Initialize repo and services
 	clientRepo := client.NewClientRepository(observerManager)
-	clientService := client.NewClientService(clientRepo, observerManager)
-
 	agentClientRepo := agentClient.NewAgentClientRepository()
-	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
+	accountRepo := account.NewAccountRepository(observerManager, agentClientRepo)
 
-	accountRepo := account.NewAccountRepository(observerManager, clientRepo, agentClientRepo)
-	accountService := account.NewAccountService(observerManager,accountRepo, agentClientService,clientService)
+	clientService := client.NewClientService(clientRepo, observerManager)
+	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
+	accountService := account.NewAccountService(observerManager,accountRepo, agentClientService)
+
+	clientService.SetAccountService(accountService)
+	accountService.SetClientService(clientService)
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)

@@ -39,6 +39,7 @@ func NewClientRepository(observerManager *observer.ObserverManager) *ClientRepos
 	return repo
 }
 
+
 // InitClientTables creates the client table if it doesn't exist
 func (r *ClientRepository) InitClientTables() {
 	// Create client table
@@ -278,12 +279,6 @@ func (r *ClientRepository) UpdateClient(client models.Client) (models.Client, er
 
 // DeleteClient removes a client's profile from the database
 func (r *ClientRepository) DeleteClient(clientID string) error {
-	// Check if client exists
-	_, err := r.GetClientByID(clientID)
-	if err != nil {
-		return err
-	}
-
 	query := `DELETE FROM client WHERE client_id = ?`
 
 	result, err := database.DB.Exec(query, clientID)

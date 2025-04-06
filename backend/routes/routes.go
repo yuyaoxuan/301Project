@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"backend/services/account"
+	"backend/services/agentClient"
 	"backend/services/agentclient_logs"
 	"backend/services/client"
 	communicationlogs "backend/services/communication_logs"
@@ -49,6 +50,9 @@ func SetupRoutes(
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
+	// 
+	r.HandleFunc("/api/agentclient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
+	
 	// Agent Client Log Read Routes
 	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler(agentClientLogService)).Methods("GET")
 	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclient_logs.GetAgentClientLogsByAgentHandler(agentClientLogService)).Methods("GET")
