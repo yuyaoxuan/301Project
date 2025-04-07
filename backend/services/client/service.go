@@ -24,6 +24,7 @@ type ClientService struct {
 	repo            *ClientRepository
 	ObserverManager *observer.ObserverManager
 	AccountService interfaces.AccountServiceInterface
+	AgentClientService interfaces.AgentClientServiceInterface
 }
 
 // NewClientService initializes the client service
@@ -37,6 +38,10 @@ func NewClientService(repo *ClientRepository, observerManager *observer.Observer
 // SetAccountService sets the account service
 func (s *ClientService) SetAccountService(accountService interfaces.AccountServiceInterface) {
 	s.AccountService = accountService
+}
+
+func (s *ClientService) SetAgentClientService(agentClientService interfaces.AgentClientServiceInterface) {
+    s.AgentClientService = agentClientService
 }
 
 // CreateClient processes user creation request
@@ -270,4 +275,63 @@ func isValidEmail(email string) bool {
 func isValidPhone(phone string) bool {
 	phoneRegex := regexp.MustCompile(`^\+\d{10,15}$`)
 	return phoneRegex.MatchString(phone)
+}
+
+// GetAllClients retrieves a list of all clients
+func (s *ClientService) GetAllClients() ([]models.Client, error) {
+	clients, err := s.repo.GetAllClients()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients: %v", err)
+	}
+	
+	return clients, nil
+}
+
+// GetClientsByAgentID retrieves clients assigned to a specific agent
+func (s *ClientService) GetClientsByAgentID(agentID int) ([]models.Client, error) {
+	// Check if agent exists
+	exists, err := s.repo.AgentExists(agentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check agent existence: %v", err)
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("agent with ID %d not found", agentID)
+	}
+	
+	clients, err := s.repo.GetClientsByAgentID(agentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients for agent %d: %v", agentID, err)
+	}
+	
+	return clients, nil
+}
+
+
+// GetUnassignedClients retrieves clients by their IDs from the AgentClientService and then fetches each client by ID
+func (s *ClientService) GetUnassignedClients() ([]models.Client, error) {
+    // Get unassigned clients from the AgentClientService
+    unassignedClients, err := s.AgentClientService.GetUnassignedClients()
+    if err != nil {
+        return nil, fmt.Errorf("error fetching unassigned clients: %v", err)
+    }
+
+    // Handle the empty list case explicitly
+    if len(unassignedClients) == 0 {
+        // Return an empty slice, not nil
+        return []models.Client{}, nil
+    }
+
+    // Now fetch each client by their ID
+    var clients []models.Client
+    for _, unassignedClient := range unassignedClients {
+        client, err := s.repo.GetClientByID(unassignedClient.ClientID)
+        if err != nil {
+            // Log the error but continue processing other clients
+            return nil, fmt.Errorf("warning: could not fetch client %s: %v", unassignedClient.ClientID, err)
+        }
+        clients = append(clients, client)
+    }
+
+    return clients, nil
 }

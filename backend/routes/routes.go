@@ -46,12 +46,22 @@ func SetupRoutes(
 	r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler(clientService)).Methods("DELETE")
 	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
 
+	// Updated Client Routes
+	r.HandleFunc("/api/clients", client.GetAllClientsHandler(clientService)).Methods("GET")
+	r.HandleFunc("/api/users/{agentId}/clients", client.GetClientsByAgentHandler(clientService)).Methods("GET")
+	r.HandleFunc("/api/agentclient/unassigned", client.GetUnassignedClientsHandler(clientService)).Methods("GET")
+
 	// Account Routes
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
-	// 
+	// Updated account Routes
+	r.HandleFunc("/api/accounts", account.GetAllAccountsHandler(accountService)).Methods("GET")
+	r.HandleFunc("/api/clients/{clientId}/accounts", account.GetAccountsByClientHandler(accountService)).Methods("GET")
+
+	// Assign unassigned client Routes
 	r.HandleFunc("/api/agentclient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
+	r.HandleFunc("/api/agentclient/unassignedList", agentClient.GetUnassignedClientsHandler).Methods("GET")
 	
 	// Agent Client Log Read Routes
 	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler(agentClientLogService)).Methods("GET")

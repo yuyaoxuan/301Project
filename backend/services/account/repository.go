@@ -180,3 +180,77 @@ func (r *AccountRepository) GetAccountByClientId(client_id string) ([]models.Acc
 
 	return accounts, nil
 }
+
+// GetAllAccounts retrieves all active accounts from the database
+func (r *AccountRepository) GetAllAccounts() ([]models.Account, error) {
+	query := `SELECT * FROM account WHERE is_active = TRUE`
+	
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve accounts: %v", err)
+	}
+	defer rows.Close()
+	
+	var accounts []models.Account
+	for rows.Next() {
+		var account models.Account
+		err := rows.Scan(
+			&account.AccountID,
+			&account.ClientID,
+			&account.AccountType,
+			&account.AccountStatus,
+			&account.OpeningDate,
+			&account.InitialDeposit,
+			&account.Currency,
+			&account.BranchID,
+			&account.IsActive,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning account row: %v", err)
+		}
+		accounts = append(accounts, account)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating account rows: %v", err)
+	}
+	
+	return accounts, nil
+}
+
+// GetAccountsByClientID retrieves all active accounts for a specific client
+func (r *AccountRepository) GetAccountsByClientID(clientID string) ([]models.Account, error) {
+	query := `SELECT * FROM account WHERE client_id = ? AND is_active = TRUE`
+	
+	rows, err := database.DB.Query(query, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve accounts for client %s: %v", clientID, err)
+	}
+	defer rows.Close()
+	
+	var accounts []models.Account
+	for rows.Next() {
+		var account models.Account
+		err := rows.Scan(
+			&account.AccountID,
+			&account.ClientID,
+			&account.AccountType,
+			&account.AccountStatus,
+			&account.OpeningDate,
+			&account.InitialDeposit,
+			&account.Currency,
+			&account.BranchID,
+			&account.IsActive,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning account row: %v", err)
+		}
+		accounts = append(accounts, account)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating account rows: %v", err)
+	}
+	
+	return accounts, nil
+}

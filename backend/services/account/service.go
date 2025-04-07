@@ -132,4 +132,32 @@ func (s *AccountService) DeleteAccount(AccountID int) (error) {
 	return nil
 }
 
+// GetAllAccounts retrieves a list of all active accounts
+func (s *AccountService) GetAllAccounts() ([]models.Account, error) {
+	accounts, err := s.repo.GetAllAccounts()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve accounts: %v", err)
+	}
+	
+	return accounts, nil
+}
+
+// GetAccountsByClientID retrieves accounts associated with a specific client
+func (s *AccountService) GetAccountsByClientID(clientID string) ([]models.Account, error) {
+	// Check if client exists
+	exists, err := s.ClientExists(clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check client existence: %v", err)
+	}
+	if !exists {
+		return nil, fmt.Errorf("client with ID %s not found", clientID)
+	}
+	
+	accounts, err := s.repo.GetAccountsByClientID(clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve accounts for client %s: %v", clientID, err)
+	}
+	
+	return accounts, nil
+}
 

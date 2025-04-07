@@ -41,9 +41,11 @@ func main() {
 	clientService := client.NewClientService(clientRepo, observerManager)
 	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
 	accountService := account.NewAccountService(observerManager,accountRepo, agentClientService)
-
+	
+	clientService.SetAgentClientService(agentClientService)
 	clientService.SetAccountService(accountService)
 	accountService.SetClientService(clientService)
+	
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)

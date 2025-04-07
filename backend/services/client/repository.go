@@ -206,7 +206,7 @@ func (r *ClientRepository) GetClientByID(clientID string) (models.Client, error)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.Client{}, fmt.Errorf("client with ID %s not found", clientID)
+			return models.Client{}, fmt.Errorf("wtf client with ID %v not found", clientID)
 		}
 		return models.Client{}, fmt.Errorf("failed to retrieve client: %v", err)
 	}
@@ -326,4 +326,75 @@ func (r *ClientRepository) VerifyClient(clientID string) error {
 	}
 
 	return nil
+}
+
+
+// GetAllClients retrieves all clients from the database
+func (r *ClientRepository) GetAllClients() ([]models.Client, error) {
+	query := `SELECT * FROM client`
+	
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients: %v", err)
+	}
+	defer rows.Close()
+	
+	var clients []models.Client
+	for rows.Next() {
+		var client models.Client
+		err := rows.Scan(
+			&client.ClientID, &client.FirstName, &client.LastName,
+			&client.DOB, &client.Gender, &client.Email,
+			&client.Phone, &client.Address, &client.City,
+			&client.State, &client.Country, &client.PostalCode,
+			&client.VerificationStatus,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning client row: %v", err)
+		}
+		clients = append(clients, client)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating client rows: %v", err)
+	}
+	
+	return clients, nil
+}
+
+// GetClientsByAgentID retrieves all clients associated with a specific agent
+func (r *ClientRepository) GetClientsByAgentID(agentID int) ([]models.Client, error) {
+	query := `
+		SELECT c.* FROM client c
+		JOIN agent_client ac ON c.client_id = ac.client_id
+		WHERE ac.id = ?
+	`
+	
+	rows, err := database.DB.Query(query, agentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients for agent %d: %v", agentID, err)
+	}
+	defer rows.Close()
+	
+	var clients []models.Client
+	for rows.Next() {
+		var client models.Client
+		err := rows.Scan(
+			&client.ClientID, &client.FirstName, &client.LastName,
+			&client.DOB, &client.Gender, &client.Email,
+			&client.Phone, &client.Address, &client.City,
+			&client.State, &client.Country, &client.PostalCode,
+			&client.VerificationStatus,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning client row: %v", err)
+		}
+		clients = append(clients, client)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating client rows: %v", err)
+	}
+	
+	return clients, nil
 }
