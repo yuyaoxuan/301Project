@@ -206,7 +206,7 @@ func (r *ClientRepository) GetClientByID(clientID string) (models.Client, error)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return models.Client{}, fmt.Errorf("wtf client with ID %v not found", clientID)
+			return models.Client{}, fmt.Errorf("client with ID %v not found", clientID)
 		}
 		return models.Client{}, fmt.Errorf("failed to retrieve client: %v", err)
 	}
