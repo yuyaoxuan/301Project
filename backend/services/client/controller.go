@@ -121,3 +121,59 @@ func VerifyClientHandler(clientService *ClientService) http.HandlerFunc {
 		json.NewEncoder(w).Encode(map[string]string{"message": "Client verified successfully"})
 	}
 }
+
+func GetAllClientsHandler(clientService *ClientService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		clients, err := clientService.GetAllClients()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(clients)
+	}
+}
+
+func GetClientsByAgentHandler(clientService *ClientService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		vars := mux.Vars(r)
+		agentID, err := strconv.Atoi(vars["agentId"])
+		if err != nil {
+			http.Error(w, "Invalid agent ID", http.StatusBadRequest)
+			return
+		}
+
+		clients, err := clientService.GetClientsByAgentID(agentID)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(clients)
+	}
+}
+
+func GetUnassignedClientsHandler(clientService *ClientService) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Step 1: Call the service layer to get unassigned clients
+		clients, err := clientService.GetUnassignedClients()
+		if err != nil {
+			// If there is an error fetching the clients, return a 500 Internal Server Error
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		// Step 2: Set response header to JSON
+		w.Header().Set("Content-Type", "application/json")
+		// Step 3: Encode the clients into JSON and send the response
+		err = json.NewEncoder(w).Encode(clients)
+		if err != nil {
+			// If there is an error encoding the response, return a 500 Internal Server Error
+			http.Error(w, "Error encoding response", http.StatusInternalServerError)
+		}
+	}
+}
+
+

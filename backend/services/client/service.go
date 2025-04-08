@@ -2,9 +2,12 @@ package client
 
 import (
 	"backend/models"
+	"backend/services/interfaces"
 	"backend/services/observer"
+	"database/sql"
 	"fmt"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -20,6 +23,8 @@ var validGenders = map[string]bool{
 type ClientService struct {
 	repo            *ClientRepository
 	ObserverManager *observer.ObserverManager
+	AccountService interfaces.AccountServiceInterface
+	AgentClientService interfaces.AgentClientServiceInterface
 }
 
 // NewClientService initializes the client service
@@ -28,6 +33,15 @@ func NewClientService(repo *ClientRepository, observerManager *observer.Observer
 		repo:            repo,
 		ObserverManager: observerManager, // Pass the ObserverManager here
 	}
+}
+
+// SetAccountService sets the account service
+func (s *ClientService) SetAccountService(accountService interfaces.AccountServiceInterface) {
+	s.AccountService = accountService
+}
+
+func (s *ClientService) SetAgentClientService(agentClientService interfaces.AgentClientServiceInterface) {
+    s.AgentClientService = agentClientService
 }
 
 // CreateClient processes user creation request
@@ -46,6 +60,8 @@ func (s *ClientService) CreateClient(client models.Client, AgentID int) (models.
 		return models.Client{}, err
 	}
 
+	// ---- did i merge wrongly, isit can delete this part cause alrdy have validate client ------
+
 	// Check for existing email
 	if exists, err := s.repo.EmailExists(client.Email); err != nil || exists {
 		return models.Client{}, fmt.Errorf("email address already exists")
@@ -55,12 +71,14 @@ func (s *ClientService) CreateClient(client models.Client, AgentID int) (models.
 	if exists, err := s.repo.PhoneExists(client.Phone); err != nil || exists {
 		return models.Client{}, fmt.Errorf("phone number already exists")
 	}
+	// -------------------------------------------------------------------------------------------
 
 	// Call repository function to insert client
 	createdClient, err := s.repo.CreateClient(client, AgentID)
 	if err != nil {
 		return models.Client{}, fmt.Errorf("failed to create client: %v", err)
 	}
+
 
 	s.ObserverManager.NotifyClientCreate(AgentID, createdClient.ClientID, &createdClient)
 
@@ -104,6 +122,31 @@ func (s *ClientService) UpdateClient(client models.Client, AgentID int) (models.
 func (s *ClientService) DeleteClient(clientID string) error {
 	if clientID == "" {
 		return fmt.Errorf("client ID cannot be empty")
+	}
+
+	// Check if client exists
+	_, id_err := s.repo.GetClientByID(clientID)
+	if id_err != nil {
+		return fmt.Errorf("client ID does not exist")
+	}
+
+	// Use the interface method 
+	accounts, acc_err := s.AccountService.GetAccountByClientId(clientID)
+	if acc_err != nil {
+		if acc_err != sql.ErrNoRows{
+			return fmt.Errorf("failed to check for account: %v", acc_err)
+		}	
+	}
+
+	if len(accounts) != 0 {
+		var existing_acc_ids []string
+
+		// Iterate through the slice of accounts and collect their AccountID as strings
+		for _, account := range accounts {
+			existing_acc_ids = append(existing_acc_ids, fmt.Sprintf("%d", account.AccountID))
+		}
+
+		return fmt.Errorf("found active accounts: %v", strings.Join(existing_acc_ids, ", "))
 	}
 
 	err := s.repo.DeleteClient(clientID)
@@ -232,4 +275,63 @@ func isValidEmail(email string) bool {
 func isValidPhone(phone string) bool {
 	phoneRegex := regexp.MustCompile(`^\+\d{10,15}$`)
 	return phoneRegex.MatchString(phone)
+}
+
+// GetAllClients retrieves a list of all clients
+func (s *ClientService) GetAllClients() ([]models.Client, error) {
+	clients, err := s.repo.GetAllClients()
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients: %v", err)
+	}
+	
+	return clients, nil
+}
+
+// GetClientsByAgentID retrieves clients assigned to a specific agent
+func (s *ClientService) GetClientsByAgentID(agentID int) ([]models.Client, error) {
+	// Check if agent exists
+	exists, err := s.repo.AgentExists(agentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check agent existence: %v", err)
+	}
+
+	if !exists {
+		return nil, fmt.Errorf("agent with ID %d not found", agentID)
+	}
+	
+	clients, err := s.repo.GetClientsByAgentID(agentID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve clients for agent %d: %v", agentID, err)
+	}
+	
+	return clients, nil
+}
+
+
+// GetUnassignedClients retrieves clients by their IDs from the AgentClientService and then fetches each client by ID
+func (s *ClientService) GetUnassignedClients() ([]models.Client, error) {
+    // Get unassigned clients from the AgentClientService
+    unassignedClients, err := s.AgentClientService.GetUnassignedClients()
+    if err != nil {
+        return nil, fmt.Errorf("error fetching unassigned clients: %v", err)
+    }
+
+    // Handle the empty list case explicitly
+    if len(unassignedClients) == 0 {
+        // Return an empty slice, not nil
+        return []models.Client{}, nil
+    }
+
+    // Now fetch each client by their ID
+    var clients []models.Client
+    for _, unassignedClient := range unassignedClients {
+        client, err := s.repo.GetClientByID(unassignedClient.ClientID)
+        if err != nil {
+            // Log the error but continue processing other clients
+            return nil, fmt.Errorf("warning: could not fetch client %s: %v", unassignedClient.ClientID, err)
+        }
+        clients = append(clients, client)
+    }
+
+    return clients, nil
 }

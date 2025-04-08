@@ -3,8 +3,10 @@ package account
 import (
 	"backend/database"
 	"backend/models"
-	"backend/services/client"
+	"backend/services/agentClient"
 	"backend/services/observer"
+	"database/sql"
+	"time"
 
 	"fmt"
 	"log"
@@ -13,13 +15,12 @@ import (
 // UserRepository struct for interacting with database
 type AccountRepository struct{
 	ObserverManager *observer.ObserverManager
-	clientService *client.ClientService
-
+	AgentClientRepository *agentClient.AgentClientRepository
 }
 
 // NewClientRepository initializes a new ClientRepository
-func NewAccountRepository(observerManager *observer.ObserverManager, clientService *client.ClientService) *AccountRepository {
-	repo := &AccountRepository{ObserverManager: observerManager, clientService: clientService}
+func NewAccountRepository(observerManager *observer.ObserverManager, agentClientRepository *agentClient.AgentClientRepository) *AccountRepository {
+	repo := &AccountRepository{ObserverManager: observerManager, AgentClientRepository: agentClientRepository}
 	repo.InitAccountTables() // ✅ Ensure tables exist when the repository is created
 	return repo
 }
@@ -37,7 +38,7 @@ func (r *AccountRepository) InitAccountTables() {
     initial_deposit FLOAT NOT NULL,
     currency VARCHAR(50) NOT NULL,
     branch_id VARCHAR(50) NOT NULL,
-    FOREIGN KEY (client_id) REFERENCES client(client_id) ON DELETE CASCADE ON UPDATE CASCADE
+	is_active BOOLEAN NOT NULL DEFAULT TRUE
 );`
 
 	_, err := database.DB.Exec(query)
@@ -51,24 +52,23 @@ func (r *AccountRepository) InitAccountTables() {
 
 func (r *AccountRepository) CreateAccount(account models.Account) (models.Account, error) {
 
-	clientExists, err := r.ClientExists(account.ClientID)
-	if err != nil {
-		return models.Account{}, fmt.Errorf("error checking if client exists: %v", err)
-	}
-	if !clientExists {
-		return models.Account{}, fmt.Errorf("client with ID %s does not exist", account.ClientID)
+	// Check if opening_date is empty, if so, set it to today's date
+	if account.OpeningDate == "" {
+		account.OpeningDate = time.Now().Format("2006-01-02") // Format the date as yyyy-mm-dd
 	}
 
+	// SQL query to insert a new account while omitting 'is_active' and using today's date for 'opening_date'
 	query := `
 	INSERT INTO account 
 	(client_id, account_type, account_status, opening_date, initial_deposit, currency, branch_id) 
-	VALUES (?, ?, ?, COALESCE(NULLIF(?, ''), CURDATE()), ?, ?, ?)`
-
+	VALUES (?, ?, ?, ?, ?, ?, ?)` 
+	
 	result, err := database.DB.Exec(query,
 		account.ClientID, account.AccountType, account.AccountStatus,
 		account.OpeningDate, account.InitialDeposit, account.Currency,
 		account.BranchID,
 	)
+
 	if err != nil {
 		return models.Account{}, fmt.Errorf("failed to insert account: %v", err)
 	}
@@ -79,35 +79,178 @@ func (r *AccountRepository) CreateAccount(account models.Account) (models.Accoun
 	}
 
 	account.AccountID = int(id)
+	account.IsActive = true
+
 	return account, nil
 }
 
 func (r *AccountRepository) DeleteAccount(accountID int) (error) {
-	query := `DELETE FROM account WHERE account_id = ?`
-	_, err := database.DB.Exec(query, accountID)
-
+	// Check if account exists
+	account, err := r.GetAccountByID(accountID)
 	if err != nil {
-		return fmt.Errorf("failed to delete account: %v", err)
+		return err
+	}
+
+	// If the account is not found, we return an error
+	if account.AccountID == 0 {
+		return fmt.Errorf("account with ID %d does not exist", accountID)
+	}
+
+	// Proceed with updating the is_active field to false (soft delete)
+	query := `UPDATE account SET is_active = FALSE WHERE account_id = ?`
+
+	_, err = database.DB.Exec(query, accountID)
+	if err != nil {
+		return fmt.Errorf("failed to soft delete account: %v", err)
 	}
 	
 	return nil
 }
 
-func (r *AccountRepository) ClientExists(clientID string) (bool, error) {
-	client, err := r.clientService.GetClient(clientID)
+// GetAccountByID retrieves an account by accountID
+func (r *AccountRepository) GetAccountByID(account_id int) (models.Account, error) {
+	// Query updated to fetch only active accounts
+	query := `SELECT * FROM account WHERE account_id = ? AND is_active = TRUE`
+
+	var account models.Account
+	err := database.DB.QueryRow(query, account_id).Scan(
+		&account.AccountID,
+		&account.ClientID,
+		&account.AccountType,
+		&account.AccountStatus,
+		&account.OpeningDate,
+		&account.InitialDeposit,
+		&account.Currency,
+		&account.BranchID,
+		&account.IsActive,
+	)
+
 	if err != nil {
-        return false, fmt.Errorf("failed to check if client exists: %v", err)
-    }
-    return client.ClientID != "", nil
+		if err == sql.ErrNoRows {
+			return models.Account{}, fmt.Errorf("account with ID %d does not exist", account_id)
+		}
+		return models.Account{}, fmt.Errorf("failed to retrieve account: %v", err)
+	}
+
+	return account, nil
 }
 
+func (r *AccountRepository) GetAccountByClientId(client_id string) ([]models.Account, error) {
+	// Query updated to fetch only active accounts
+	query := `SELECT * FROM account WHERE client_id = ? AND is_active = TRUE`
 
-func (r *AccountRepository) AccountExists(account_id int) (bool, error) {
-	var exists bool
-	query := `SELECT EXISTS(SELECT 1 FROM account WHERE account_id = ?)`
-	err := database.DB.QueryRow(query, account_id).Scan(&exists)
+	// Prepare a slice to store all the accounts
+    var accounts []models.Account
+
+    // Execute the query to fetch all accounts for the client
+    rows, err := database.DB.Query(query, client_id)
+    if err != nil {
+        return nil, fmt.Errorf("failed to execute query: %v", err)
+    }
+    defer rows.Close()
+
+    // Iterate through the rows and scan each one into the accounts slice
+    for rows.Next() {
+        var account models.Account
+        if err := rows.Scan(
+            &account.AccountID,
+            &account.ClientID,
+            &account.AccountType,
+            &account.AccountStatus,
+            &account.OpeningDate,
+            &account.InitialDeposit,
+            &account.Currency,
+            &account.BranchID,
+            &account.IsActive,
+        ); err != nil {
+            return nil, fmt.Errorf("failed to scan account: %v", err)
+        }
+        accounts = append(accounts, account)
+    }
+
+    // Check for any error encountered during iteration
+    if err := rows.Err(); err != nil {
+        return nil, fmt.Errorf("error encountered during rows iteration: %v", err)
+    }
+
+    // If no accounts were found, return an empty slice with no error
+    if len(accounts) == 0 {
+        return nil, nil // Return nil to indicate no accounts were found
+    }
+
+	return accounts, nil
+}
+
+// GetAllAccounts retrieves all active accounts from the database
+func (r *AccountRepository) GetAllAccounts() ([]models.Account, error) {
+	query := `SELECT * FROM account WHERE is_active = TRUE`
+	
+	rows, err := database.DB.Query(query)
 	if err != nil {
-		return false, fmt.Errorf("failed to check account id existence: %v", err)
+		return nil, fmt.Errorf("failed to retrieve accounts: %v", err)
 	}
-	return exists, nil
+	defer rows.Close()
+	
+	var accounts []models.Account
+	for rows.Next() {
+		var account models.Account
+		err := rows.Scan(
+			&account.AccountID,
+			&account.ClientID,
+			&account.AccountType,
+			&account.AccountStatus,
+			&account.OpeningDate,
+			&account.InitialDeposit,
+			&account.Currency,
+			&account.BranchID,
+			&account.IsActive,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning account row: %v", err)
+		}
+		accounts = append(accounts, account)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating account rows: %v", err)
+	}
+	
+	return accounts, nil
+}
+
+// GetAccountsByClientID retrieves all active accounts for a specific client
+func (r *AccountRepository) GetAccountsByClientID(clientID string) ([]models.Account, error) {
+	query := `SELECT * FROM account WHERE client_id = ? AND is_active = TRUE`
+	
+	rows, err := database.DB.Query(query, clientID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve accounts for client %s: %v", clientID, err)
+	}
+	defer rows.Close()
+	
+	var accounts []models.Account
+	for rows.Next() {
+		var account models.Account
+		err := rows.Scan(
+			&account.AccountID,
+			&account.ClientID,
+			&account.AccountType,
+			&account.AccountStatus,
+			&account.OpeningDate,
+			&account.InitialDeposit,
+			&account.Currency,
+			&account.BranchID,
+			&account.IsActive,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("error scanning account row: %v", err)
+		}
+		accounts = append(accounts, account)
+	}
+	
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating account rows: %v", err)
+	}
+	
+	return accounts, nil
 }

@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	// Initialize the database connection
+		// Initialize the database connection
 	database.ConnectDB()
 
 	// Initialize repositories
@@ -35,14 +35,17 @@ func main() {
 
 	// Initialize repo and services
 	clientRepo := client.NewClientRepository(observerManager)
-	clientService := client.NewClientService(clientRepo, observerManager)
-
-	accountRepo := account.NewAccountRepository(observerManager, clientService)
-	accountService := account.NewAccountService(accountRepo, observerManager)
-
 	agentClientRepo := agentClient.NewAgentClientRepository()
-	_ = agentClientRepo // Avoid unused variable warning
+	accountRepo := account.NewAccountRepository(observerManager, agentClientRepo)
 
+	clientService := client.NewClientService(clientRepo, observerManager)
+	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
+	accountService := account.NewAccountService(observerManager,accountRepo, agentClientService)
+	
+	clientService.SetAgentClientService(agentClientService)
+	clientService.SetAccountService(accountService)
+	accountService.SetClientService(clientService)
+	
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)

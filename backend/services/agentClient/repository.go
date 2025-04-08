@@ -2,24 +2,11 @@ package agentClient
 
 import (
 	"backend/database"
+	"backend/models"
 	"database/sql"
 	"fmt"
 	"log"
 )
-
-// User struct represents a user in the system
-type AgentClient struct {
-	ClientID string `json:"client_id"`
-	AgentID int `json:"id"`
-}
-
-type Agent struct {
-    ID        int    `json:"id"`
-    FirstName string `json:"first_name"`
-    LastName  string `json:"last_name"`
-    Email     string `json:"email"`
-    Role      string `json:"role"`
-}
 
 // UserRepository struct for interacting with database
 type AgentClientRepository struct{}
@@ -41,9 +28,6 @@ func (r *AgentClientRepository) InitAgentClientTables() {
 		FOREIGN KEY (client_id) REFERENCES client(client_id) ON DELETE CASCADE ON UPDATE CASCADE,
 		FOREIGN KEY (id) REFERENCES users(id) ON DELETE SET NULL
 	);`
-
-	// to-do, possible to change this into api call to update this table when smth is deleted
-	// den can map agent_id 
 
 	_, err := database.DB.Exec(query)
 	if err != nil {	
@@ -95,7 +79,7 @@ func (r *AgentClientRepository) UpdateAgentToClient(clientID string, newID int) 
 	return err
 }
 
-func (r *AgentClientRepository) GetUnassignedClients() ([]AgentClient, error) {
+func (r *AgentClientRepository) GetUnassignedClients() ([]models.AgentClient, error) {
 	query := `SELECT client_id FROM agent_client WHERE id IS NULL`
 	rows, err := database.DB.Query(query)
 	if err != nil {
@@ -103,9 +87,9 @@ func (r *AgentClientRepository) GetUnassignedClients() ([]AgentClient, error) {
 	}
 	defer rows.Close()
 
-	var clients []AgentClient
+	var clients []models.AgentClient
 	for rows.Next() {
-		var client AgentClient
+		var client models.AgentClient
 		err := rows.Scan(&client.ClientID)
 		if err != nil {
 			return nil, err
@@ -116,7 +100,7 @@ func (r *AgentClientRepository) GetUnassignedClients() ([]AgentClient, error) {
 	return clients, nil
 }
 
-func (r *AgentClientRepository) GetAllAgents() ([]Agent, error) {
+func (r *AgentClientRepository) GetAllAgents() ([]models.Agent, error) {
 	query := `SELECT id, first_name, last_name, email, role FROM users WHERE role = 'Agent'`
 	rows, err := database.DB.Query(query)
 	if err != nil {
@@ -124,9 +108,9 @@ func (r *AgentClientRepository) GetAllAgents() ([]Agent, error) {
 	}
 	defer rows.Close()
 
-	var agents []Agent
+	var agents []models.Agent
 	for rows.Next() {
-		var agent Agent
+		var agent models.Agent
 		err := rows.Scan(&agent.ID, &agent.FirstName, &agent.LastName, &agent.Email, &agent.Role)
 		if err != nil {
 			return nil, err
@@ -147,4 +131,50 @@ func (r *AgentClientRepository) IsAgent(userID int) (bool, error) {
 	}
 
 	return role == "Agent", nil
+}
+
+// GetAgentIDByClientID returns just the agent ID assigned to a specific client
+func (r *AgentClientRepository) GetAgentIDByClientID(clientID string) (int, error) {
+	query := `SELECT id FROM agent_client WHERE client_id = ?`
+	
+	var agentID int
+	err := database.DB.QueryRow(query, clientID).Scan(&agentID)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("no client found with ID %s", clientID)
+		}
+		return 0, err
+	}
+	
+	return agentID, nil
+}
+
+// GetAgentClientCount returns a map of agent IDs to their client count
+func (r *AgentClientRepository) GetAgentClientCount() (map[int]int, error) {
+	query := `
+	SELECT id, COUNT(client_id) as client_count
+	FROM agent_client
+	WHERE id IS NOT NULL
+	GROUP BY id
+	ORDER BY client_count ASC, id ASC`
+	
+	rows, err := database.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	agentClientCounts := make(map[int]int)
+	for rows.Next() {
+		var agentID int
+		var count int
+		err := rows.Scan(&agentID, &count)
+		if err != nil {
+			return nil, err
+		}
+		agentClientCounts[agentID] = count
+	}
+
+	return agentClientCounts, nil
 }
