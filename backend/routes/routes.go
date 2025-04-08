@@ -2,13 +2,11 @@ package routes
 
 import (
 	"net/http"
-
 	"backend/services/account"
 	"backend/services/agentclient_logs"
 	"backend/services/client"
-	communicationlogs "backend/services/communication_logs"
+	"backend/services/communication_logs"
 	"backend/services/user"
-
 	"github.com/gorilla/mux"
 )
 
@@ -25,7 +23,8 @@ func SetupRoutes(
 	}).Methods("GET")
 
 	// Public User Routes
-	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("POST")
+	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("GET") // Changed from POST to GET
+	r.HandleFunc("/api/auth/callback", user.AuthCallbackHandler).Methods("GET")
 	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")
 	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")
 
