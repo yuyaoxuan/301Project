@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	_ "backend/services/envloader"
+	"github.com/joho/godotenv" // ✅ Load .env
 
 	"backend/database"
 	"backend/routes"           // Import routes from the routes package
@@ -19,13 +22,24 @@ import (
 )
 
 func main() {
-		// Initialize the database connection
+	// ✅ Load environment variables from .env
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	// Optional: Print confirmation that AWS creds are present
+	if os.Getenv("AWS_ACCESS_KEY_ID") == "" || os.Getenv("AWS_SECRET_ACCESS_KEY") == "" {
+		log.Fatal("Missing AWS credentials in .env")
+	}
+
+	// Initialize the database connection
 	database.ConnectDB()
 
 	// Initialize repositories
 	agentClientLogRepo := agentclient_logs.NewAgentClientLogRepository() // Agent-client logs repo
 	communicationRepo := communicationlogs.NewCommunicationLogRepository()
-	
+
 	// Ensure that necessary database tables are created
 	userRepo := user.NewUserRepository() // Initializes user repo (which ensures table exists)
 	_ = userRepo                         // Avoid unused variable warning
@@ -40,12 +54,11 @@ func main() {
 
 	clientService := client.NewClientService(clientRepo, observerManager)
 	agentClientService := agentClient.NewAgentClientService(agentClientRepo)
-	accountService := account.NewAccountService(observerManager,accountRepo, agentClientService)
-	
+	accountService := account.NewAccountService(observerManager, accountRepo, agentClientService)
+
 	clientService.SetAgentClientService(agentClientService)
 	clientService.SetAccountService(accountService)
 	accountService.SetClientService(clientService)
-	
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)

@@ -1,14 +1,15 @@
+
 package routes
 
 import (
 	"net/http"
 	"backend/services/account"
-	"backend/services/agentClient"
 	"backend/services/agentclient_logs"
 	"backend/services/client"
 	"backend/services/communication_logs"
 	"backend/services/user"
 	"github.com/gorilla/mux"
+	"backend/services/middleware"
 )
 
 func SetupRoutes(
@@ -24,19 +25,19 @@ func SetupRoutes(
 	}).Methods("GET")
 
 	// Public User Routes
-	r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("GET") // Changed from POST to GET
-	r.HandleFunc("/api/auth/callback", user.AuthCallbackHandler).Methods("GET")
-	r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST")
-	r.HandleFunc("/api/users/reset-password", user.ResetPasswordHandler).Methods("POST")
+r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("GET") // OAuth login
+r.HandleFunc("/api/auth/callback", user.AuthCallbackHandler).Methods("GET")
+r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST") // Registers a user into Cognito and inserts into DB
+// Removed password reset endpoint here (now protected only)
 
-	// Protected Routes (Require JWT)
-	protected := r.PathPrefix("/api").Subrouter()
-	protected.Use(user.JWTAuthMiddleware)
+// Protected Routes (Require JWT)
+protected := r.PathPrefix("/api").Subrouter()
+protected.Use(middleware.JWTAuthMiddleware) // Use middleware from correct package
 
-	// User Routes (protected)
-	protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")
-	protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")
-	protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST")
+// User Routes (protected)
+protected.HandleFunc("/users/{userId}", user.DisableUserHandler).Methods("DELETE")
+protected.HandleFunc("/users/{userId}", user.UpdateUserHandler).Methods("PUT")
+//protected.HandleFunc("/users/reset-password", user.ResetPasswordHandler).Methods("POST") // Reset password (if supported)
 
 	// Client Routes
 	r.HandleFunc("/api/clients/{agent_id}", client.CreateClientHandler(clientService)).Methods("POST")
@@ -45,23 +46,10 @@ func SetupRoutes(
 	r.HandleFunc("/api/clients/{clientId}", client.DeleteClientHandler(clientService)).Methods("DELETE")
 	r.HandleFunc("/api/clients/{clientId}/verify", client.VerifyClientHandler(clientService)).Methods("POST")
 
-	// Updated Client Routes
-	r.HandleFunc("/api/clients", client.GetAllClientsHandler(clientService)).Methods("GET")
-	r.HandleFunc("/api/users/{agentId}/clients", client.GetClientsByAgentHandler(clientService)).Methods("GET")
-	r.HandleFunc("/api/agentclient/unassigned", client.GetUnassignedClientsHandler(clientService)).Methods("GET")
-
 	// Account Routes
 	r.HandleFunc("/api/accounts", account.CreateAccountHandler(accountService)).Methods("POST")
 	r.HandleFunc("/api/accounts/{account_id}", account.DeleteAccountHandler(accountService)).Methods("DELETE")
 
-	// Updated account Routes
-	r.HandleFunc("/api/accounts", account.GetAllAccountsHandler(accountService)).Methods("GET")
-	r.HandleFunc("/api/clients/{clientId}/accounts", account.GetAccountsByClientHandler(accountService)).Methods("GET")
-
-	// Assign unassigned client Routes
-	r.HandleFunc("/api/agentclient", agentClient.AssignAgentsToUnassignedClientsHandler).Methods("PUT")
-	r.HandleFunc("/api/agentclient/unassignedList", agentClient.GetUnassignedClientsHandler).Methods("GET")
-	
 	// Agent Client Log Read Routes
 	r.HandleFunc("/agentclient_logs/client/{clientID}", agentclient_logs.GetAgentClientLogsByClientHandler(agentClientLogService)).Methods("GET")
 	r.HandleFunc("/agentclient_logs/agent/{agentID}", agentclient_logs.GetAgentClientLogsByAgentHandler(agentClientLogService)).Methods("GET")

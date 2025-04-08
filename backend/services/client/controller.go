@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//KAI ZHE DO CHECK AGENTID and OR ADMINID with TOKEN
 func CreateClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var client models.Client
@@ -135,6 +136,7 @@ func GetAllClientsHandler(clientService *ClientService) http.HandlerFunc {
 	}
 }
 
+//KAI ZHE DO CHECK AGENTID and OR ADMINID with TOKEN
 func GetClientsByAgentHandler(clientService *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)

@@ -3,7 +3,6 @@ package user
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 )
 
 // UserService handles business logic for users.
@@ -16,7 +15,7 @@ func NewUserService(repo *UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-// CreateUser creates a new user.
+// CreateUser stores user metadata (after Cognito registration)
 func (s *UserService) CreateUser(firstName, lastName, email, role string) (User, error) {
 	if firstName == "" || lastName == "" || email == "" || role == "" {
 		return User{}, errors.New("missing required fields")
@@ -30,23 +29,24 @@ func (s *UserService) CreateUser(firstName, lastName, email, role string) (User,
 	return user, nil
 }
 
-// ResetPassword updates a user's password
-func (s *UserService) ResetPassword(email, newPassword string) error {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+// DisableUser disables a user, checking business rules
+func (s *UserService) DisableUser(targetUserID string, requesterID int, requesterRole string) error {
+	targetUser, err := s.repo.GetUserByID(targetUserID)
 	if err != nil {
-		return fmt.Errorf("failed to hash password: %v", err)
+		return fmt.Errorf("target user not found: %v", err)
 	}
 
-	return s.repo.UpdatePassword(email, string(hashedPassword))
-}
-
-// DisableUser disables a user by setting their status to 'inactive'.
-func (s *UserService) DisableUser(userID string) error {
-	err := s.repo.DisableUser(userID)
-	if err != nil {
-		return fmt.Errorf("failed to disable user: %v", err)
+	// Prevent root admin deletion
+	if targetUser.Role == "Admin" && targetUser.ID == 1 {
+		return errors.New("cannot disable root admin")
 	}
-	return nil
+
+	// Only root admin (ID 1) can disable other admins
+	if targetUser.Role == "Admin" && requesterID != 1 {
+		return errors.New("only root admin can disable other admins")
+	}
+
+	return s.repo.DisableUser(targetUserID)
 }
 
 // UpdateUser updates an existing user's details.
@@ -65,4 +65,22 @@ func (s *UserService) GetUserByEmail(email string) (User, error) {
 		return User{}, fmt.Errorf("failed to fetch user by email: %v", err)
 	}
 	return user, nil
+}
+
+// SyncOrInsertUser checks if the user exists by email; if not, inserts it with given role.
+func SyncOrInsertUser(email, role string) (int, error) {
+	repo := NewUserRepository()
+	existingUser, err := repo.GetUserByEmail(email)
+	if err == nil {
+		// User exists
+		return existingUser.ID, nil
+	}
+
+	// Insert new user with empty name fields
+	newUser, err := repo.InsertUserFromCognito(email, role)
+	if err != nil {
+		return 0, fmt.Errorf("failed to insert user: %v", err)
+	}
+
+	return newUser.ID, nil
 }

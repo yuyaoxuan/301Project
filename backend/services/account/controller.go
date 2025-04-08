@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
+//KAI ZHE DO CHECK AGENTID and OR ADMINID with TOKEN
 // CreateUserHandler handles the HTTP request to create a user
 func CreateAccountHandler(service *AccountService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request){

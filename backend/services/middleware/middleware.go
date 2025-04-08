@@ -1,29 +1,12 @@
-package user
+package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
-
-	"github.com/coreos/go-oidc/v3/oidc"
+	"backend/services/user"
+	"backend/services/auth"
 )
-
-var (
-	cognitoIssuer   = "https://cognito-idp.ap-southeast-1.amazonaws.com/ap-southeast-1_ZTmaj2omi"
-	cognitoClientID = "2g45kkfdu9ba88uhksnv3c86uu"
-	provider        *oidc.Provider
-	verifier        *oidc.IDTokenVerifier
-)
-
-func init() {
-	var err error
-	provider, err = oidc.NewProvider(context.Background(), cognitoIssuer)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to initialize OIDC provider: %v", err))
-	}
-	verifier = provider.Verifier(&oidc.Config{ClientID: cognitoClientID})
-}
 
 func JWTAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +17,7 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 		}
 		rawIDToken := strings.TrimPrefix(authHeader, "Bearer ")
 
-		idToken, err := verifier.Verify(r.Context(), rawIDToken)
+		idToken, err := auth.Verifier().Verify(r.Context(), rawIDToken)
 		if err != nil {
 			http.Error(w, "Failed to verify ID token: "+err.Error(), http.StatusUnauthorized)
 			return
@@ -46,8 +29,13 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Extract role from Cognito groups
-		var role string
+		email, ok := claims["email"].(string)
+		if !ok || email == "" {
+			http.Error(w, "Missing email in token claims", http.StatusUnauthorized)
+			return
+		}
+
+		role := "Agent"
 		if groups, ok := claims["cognito:groups"].([]interface{}); ok {
 			for _, group := range groups {
 				if strGroup, ok := group.(string); ok && (strGroup == "Admin" || strGroup == "Agent") {
@@ -57,10 +45,17 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 			}
 		}
 
-		// Add user info to context
+		// ✅ DB sync now handled by user package
+		userID, err := user.SyncOrInsertUser(email, role)
+		if err != nil {
+			http.Error(w, "Failed to sync user: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), "user", map[string]interface{}{
-			"id":   claims["sub"],
-			"role": role,
+			"id":    userID,
+			"email": email,
+			"role":  role,
 		})
 
 		next.ServeHTTP(w, r.WithContext(ctx))
