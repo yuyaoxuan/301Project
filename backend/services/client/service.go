@@ -1,6 +1,7 @@
 package client
 
 import (
+	"backend/database"
 	"backend/models"
 	"backend/services/interfaces"
 	"backend/services/observer"
@@ -19,6 +20,7 @@ var validGenders = map[string]bool{
 	"Prefer not to say": true,
 }
 
+
 // ClientService struct to interact with the repository layer
 type ClientService struct {
 	repo            *ClientRepository
@@ -26,6 +28,21 @@ type ClientService struct {
 	AccountService interfaces.AccountServiceInterface
 	AgentClientService interfaces.AgentClientServiceInterface
 }
+
+// ✅ IsClientOwnedByAgent checks if the client belongs to the given agent
+func (s *ClientService) IsClientOwnedByAgent(clientID string, agentID int) (bool, error) {
+	var dbAgentID int
+	query := "SELECT agent_id FROM clients WHERE client_id = ?"
+	err := database.DB.QueryRow(query, clientID).Scan(&dbAgentID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return false, fmt.Errorf("client not found")
+		}
+		return false, err
+	}
+	return dbAgentID == agentID, nil
+}
+
 
 // NewClientService initializes the client service
 func NewClientService(repo *ClientRepository, observerManager *observer.ObserverManager) *ClientService {
@@ -335,3 +352,4 @@ func (s *ClientService) GetUnassignedClients() ([]models.Client, error) {
 
     return clients, nil
 }
+

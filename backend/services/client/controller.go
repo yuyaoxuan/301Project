@@ -9,20 +9,40 @@ import (
 	"github.com/gorilla/mux"
 )
 
-//KAI ZHE DO CHECK AGENTID and OR ADMINID with TOKEN
+// Helper to validate access for agent/admin roles
+func IsClientOwnedByAgent(agentID int, clientID string, role string, service *ClientService) bool {
+	if role == "Admin" {
+		return true
+	}
+	isOwned, err := service.IsClientOwnedByAgent(clientID, agentID)
+	if err != nil {
+		return false
+	}
+	return isOwned
+}
+
+
+// CreateClientHandler handles the creation of a client
 func CreateClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var client models.Client
 		vars := mux.Vars(r)
-		AgentID, stringToInt_err := strconv.Atoi(vars["agent_id"])
-
-		if stringToInt_err != nil {
+		AgentID, err := strconv.Atoi(vars["agent_id"])
+		if err != nil {
 			http.Error(w, "Unable to convert agent_id to int", http.StatusInternalServerError)
 			return
 		}
 
-		err := json.NewDecoder(r.Body).Decode(&client)
-		if err != nil {
+		// Role check
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		tokenAgentID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+		if !IsClientOwnedByAgent(tokenAgentID, "", role, service) && tokenAgentID != AgentID {
+			http.Error(w, "Unauthorized: not your agent ID", http.StatusForbidden)
+			return
+		}
+
+		if err := json.NewDecoder(r.Body).Decode(&client); err != nil {
 			http.Error(w, "Invalid request payload", http.StatusBadRequest)
 			return
 		}
@@ -39,29 +59,40 @@ func CreateClientHandler(service *ClientService) http.HandlerFunc {
 	}
 }
 
-func GetClientHandler(clientService *ClientService) http.HandlerFunc {
+func GetClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		clientID := vars["clientId"]
 
-		client, err := clientService.GetClient(clientID)
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		agentID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+		if !IsClientOwnedByAgent(agentID, clientID, role, service) {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
+			return
+		}
+
+		client, err := service.GetClient(clientID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(client)
 	}
 }
 
-func UpdateClientHandler(clientService *ClientService) http.HandlerFunc {
+func UpdateClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		clientID := vars["clientId"]
-		agentID, err := strconv.Atoi(vars["agent_id"])
-		if err != nil {
-			http.Error(w, "Invalid agent ID", http.StatusBadRequest)
+
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		agentID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+
+		if !IsClientOwnedByAgent(agentID, clientID, role, service) {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
 			return
 		}
 
@@ -72,23 +103,31 @@ func UpdateClientHandler(clientService *ClientService) http.HandlerFunc {
 		}
 		client.ClientID = clientID
 
-		updatedClient, err := clientService.UpdateClient(client, agentID)
+		updatedClient, err := service.UpdateClient(client, agentID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(updatedClient)
 	}
 }
 
-func DeleteClientHandler(clientService *ClientService) http.HandlerFunc {
+func DeleteClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		clientID := vars["clientId"]
 
-		err := clientService.DeleteClient(clientID)
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		agentID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+
+		if !IsClientOwnedByAgent(agentID, clientID, role, service) {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
+			return
+		}
+
+		err := service.DeleteClient(clientID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
@@ -99,10 +138,19 @@ func DeleteClientHandler(clientService *ClientService) http.HandlerFunc {
 	}
 }
 
-func VerifyClientHandler(clientService *ClientService) http.HandlerFunc {
+func VerifyClientHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		clientID := vars["clientId"]
+
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		agentID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+
+		if !IsClientOwnedByAgent(agentID, clientID, role, service) {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
+			return
+		}
 
 		var requestBody struct {
 			NRIC string `json:"nric"`
@@ -112,7 +160,7 @@ func VerifyClientHandler(clientService *ClientService) http.HandlerFunc {
 			return
 		}
 
-		err := clientService.VerifyClient(clientID, requestBody.NRIC)
+		err := service.VerifyClient(clientID, requestBody.NRIC)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -123,30 +171,45 @@ func VerifyClientHandler(clientService *ClientService) http.HandlerFunc {
 	}
 }
 
-func GetAllClientsHandler(clientService *ClientService) http.HandlerFunc {
+func GetAllClientsHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		clients, err := clientService.GetAllClients()
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		role := userCtx["role"].(string)
+
+		if role != "Admin" {
+			http.Error(w, "Only admins can access all clients", http.StatusForbidden)
+			return
+		}
+
+		clients, err := service.GetAllClients()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(clients)
 	}
 }
 
-//KAI ZHE DO CHECK AGENTID and OR ADMINID with TOKEN
-func GetClientsByAgentHandler(clientService *ClientService) http.HandlerFunc {
+func GetClientsByAgentHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
-		agentID, err := strconv.Atoi(vars["agentId"])
+		requestedAgentID, err := strconv.Atoi(vars["agentId"])
 		if err != nil {
 			http.Error(w, "Invalid agent ID", http.StatusBadRequest)
 			return
 		}
 
-		clients, err := clientService.GetClientsByAgentID(agentID)
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		requesterID := userCtx["id"].(int)
+		role := userCtx["role"].(string)
+
+		if role != "Admin" && requesterID != requestedAgentID {
+			http.Error(w, "Unauthorized", http.StatusForbidden)
+			return
+		}
+
+		clients, err := service.GetClientsByAgentID(requestedAgentID)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -157,25 +220,23 @@ func GetClientsByAgentHandler(clientService *ClientService) http.HandlerFunc {
 	}
 }
 
-func GetUnassignedClientsHandler(clientService *ClientService) http.HandlerFunc {
+func GetUnassignedClientsHandler(service *ClientService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Step 1: Call the service layer to get unassigned clients
-		clients, err := clientService.GetUnassignedClients()
+		userCtx := r.Context().Value("user").(map[string]interface{})
+		role := userCtx["role"].(string)
+
+		if role != "Admin" {
+			http.Error(w, "Only admins can view unassigned clients", http.StatusForbidden)
+			return
+		}
+
+		clients, err := service.GetUnassignedClients()
 		if err != nil {
-			// If there is an error fetching the clients, return a 500 Internal Server Error
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Step 2: Set response header to JSON
 		w.Header().Set("Content-Type", "application/json")
-		// Step 3: Encode the clients into JSON and send the response
-		err = json.NewEncoder(w).Encode(clients)
-		if err != nil {
-			// If there is an error encoding the response, return a 500 Internal Server Error
-			http.Error(w, "Error encoding response", http.StatusInternalServerError)
-		}
+		json.NewEncoder(w).Encode(clients)
 	}
 }
-
-
