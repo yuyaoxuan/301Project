@@ -7,8 +7,8 @@ export const accountService = {
     return response.data
   },
 
-  async getAccountById(accountId) {
-    const response = await api.get(`/accounts/${accountId}`)
+  async getAccountById(clientId) {
+    const response = await api.get(`/clients/${clientId}/accounts`)
     return response.data
   },
 
