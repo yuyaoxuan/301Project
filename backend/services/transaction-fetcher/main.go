@@ -374,7 +374,7 @@ func processOnce(sftpServer, username, privateKeyPath, remotePath, processedPath
 	}
 
 	// Connect to SFTP Server
-	client, err := ssh.Dial("tcp", sftpServer+":22", config)
+	client, err := ssh.Dial("tcp", sftpServer+":2022", config)
 	if err != nil {
 		log.Println("Failed to connect:", err)
 		updateStatusError()
