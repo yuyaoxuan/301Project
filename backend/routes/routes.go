@@ -25,6 +25,7 @@ func SetupRoutes(
 	}).Methods("GET")
 
 	// Public User Routes
+r.HandleFunc("/api/users/login", user.LoginUserHandler).Methods("POST")
 r.HandleFunc("/api/users/authenticate", user.AuthenticateUserHandler).Methods("GET") // OAuth login
 r.HandleFunc("/api/auth/callback", user.AuthCallbackHandler).Methods("GET")
 r.HandleFunc("/api/users", user.CreateUserHandler).Methods("POST") // Registers a user into Cognito and inserts into DB

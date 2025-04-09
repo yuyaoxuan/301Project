@@ -73,6 +73,27 @@ func AuthCallbackHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func LoginUserHandler(w http.ResponseWriter, r *http.Request) {
+	var creds struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&creds); err != nil {
+		http.Error(w, "Invalid JSON body", http.StatusBadRequest)
+		return
+	}
+
+	tokens, err := auth.LoginWithCognito(creds.Email, creds.Password)
+	if err != nil {
+		http.Error(w, "Login failed: "+err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(tokens)
+}
+
 // CreateUserHandler registers in Cognito, then stores user metadata in DB
 func CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	var input struct {

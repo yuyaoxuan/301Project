@@ -10,6 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	cognito "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
 	"github.com/coreos/go-oidc/v3/oidc"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 
 )
 
@@ -26,11 +29,13 @@ var (
 	verifier    *oidc.IDTokenVerifier
 	CognitoSvc  *cognito.CognitoIdentityProvider
 )
-func init() {
+func calculateSecretHash(username, clientID, clientSecret string) string {
+	mac := hmac.New(sha256.New, []byte(clientSecret))
+	mac.Write([]byte(username + clientID))
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
+}
 
-	fmt.Println("🔍 AWS Region from .env:", os.Getenv("AWS_REGION"))
-	fmt.Println("🔍 Access Key Present:", os.Getenv("AWS_ACCESS_KEY_ID") != "")
-	fmt.Println("🔍 Secret Key Present:", os.Getenv("AWS_SECRET_ACCESS_KEY") != "")
+func init() {
 
 	var err error
 
@@ -52,6 +57,34 @@ func init() {
 	}))
 	CognitoSvc = cognito.New(sess)
 }
+
+
+func LoginWithCognito(email, password string) (map[string]string, error) {
+	secretHash := calculateSecretHash(email, ClientID, ClientSecret)
+
+	input := &cognito.InitiateAuthInput{
+		AuthFlow: aws.String("USER_PASSWORD_AUTH"),
+		ClientId: aws.String(ClientID),
+		AuthParameters: map[string]*string{
+			"USERNAME":     aws.String(email),
+			"PASSWORD":     aws.String(password),
+			"SECRET_HASH":  aws.String(secretHash),
+		},
+	}
+
+	result, err := CognitoSvc.InitiateAuth(input)
+	if err != nil {
+		return nil, err
+	}
+
+	return map[string]string{
+		"access_token":  *result.AuthenticationResult.AccessToken,
+		"id_token":      *result.AuthenticationResult.IdToken,
+		"refresh_token": *result.AuthenticationResult.RefreshToken,
+		"expires_in":    fmt.Sprint(*result.AuthenticationResult.ExpiresIn),
+	}, nil
+}
+
 
 // Verifier returns the OIDC verifier
 func Verifier() *oidc.IDTokenVerifier {
