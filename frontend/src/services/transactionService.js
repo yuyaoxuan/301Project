@@ -13,7 +13,7 @@ export const transactionService = {
   },
 
   async getTransactionsByClientId(clientId) {
-    const response = await api.get(`/transactions/client/${clientId}`)
+    const response = await api.get(`/transactions/${clientId}`)
     return response.data
   }
 }
