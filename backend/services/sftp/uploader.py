@@ -9,10 +9,10 @@ load_dotenv()
 sftp_host = os.getenv("SFTP_HOST")
 sftp_user = os.getenv("SFTP_USER")
 private_key_path = os.path.expanduser(os.getenv("SFTP_PRIVATE_KEY"))
-sftp_port = int(os.getenv("SFTP_PORT", 22))
+sftp_port = int(os.getenv("SFTP_PORT", 2022))
 
 def upload_to_sftp(local_file_path, remote_file_path):
-    """Uploads a file to AWS Transfer Family (SFTP)"""
+    """Uploads a file to SFTPGo (backed by S3)"""
     try:
         if not os.path.exists(local_file_path):
             raise FileNotFoundError(f"❌ File not found: {local_file_path}")
@@ -27,11 +27,17 @@ def upload_to_sftp(local_file_path, remote_file_path):
         transport.connect(username=sftp_user, pkey=private_key)
         sftp = paramiko.SFTPClient.from_transport(transport)
 
-        # Simply upload to the full path - AWS Transfer Family will handle it
+        # Ensure remote directory exists
+        remote_dir = os.path.dirname(remote_file_path)
+        try:
+            sftp.stat(remote_dir)
+        except FileNotFoundError:
+            sftp.mkdir(remote_dir)
+
+        # Upload file
         sftp.put(local_file_path, remote_file_path)
         print(f"✅ File uploaded successfully: {remote_file_path}")
 
-        # Close connection
         sftp.close()
         transport.close()
 
@@ -47,7 +53,6 @@ for client_id in os.listdir(base_dir):
     if os.path.isdir(client_path):  # Ensure it's a directory
         for filename in os.listdir(client_path):
             local_file_path = os.path.join(client_path, filename)
-            remote_file_path = f"logs/{client_id}/{filename}"  # Upload inside `/sftp_user/ClientID/`
+            remote_file_path = f"logs/{client_id}/{filename}"  # uploads to /sftp_user/client_id/filename
             
-            # Upload file
             upload_to_sftp(local_file_path, remote_file_path)
