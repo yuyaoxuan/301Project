@@ -44,7 +44,28 @@ func (r *UserRepository) InitUserTable() {
 	}
 
 	fmt.Println("✅ Users table ready (no password stored)")
+
+	// 🔽 Insert seed users if not exists
+	seed := `
+	INSERT IGNORE INTO users (id, first_name, last_name, email, role, status)
+	VALUES 
+		(1, 'Admin', 'Root', 'Admin@root.com', 'Admin', 'active'),
+	(2, 'Agent1', 'Agent', 'Agent1@agent.com', 'Agent', 'active'),
+	(3, 'Admin2', 'Admin', 'Admin2@notRoot.com', 'Admin', 'active'),
+	(4, 'Admin3', 'Admin', 'Admin3@notRoot.com', 'Admin', 'active'),
+	(5, 'Admin4', 'Admin', 'Admin4@notRoot.com', 'Admin', 'active'),
+	(6, 'Agent2', 'Agent', 'Agent2@agent.com', 'Agent', 'active'),
+	(7, 'Agent3', 'Agent', 'Agent3@agent.com', 'Agent', 'active'),
+	(8, 'Agent4', 'Agent', 'Agent4@agent.com', 'Agent', 'active');`
+
+	_, err = database.DB.Exec(seed)
+	if err != nil {
+		log.Fatal("❌ Failed to seed users:", err)
+	}
+
+	fmt.Println("✅ Seed users inserted (if not already present)")
 }
+
 
 // CreateUser inserts metadata for a new user (already registered in Cognito).
 func (r *UserRepository) CreateUser(firstName, lastName, email, role string) (User, error) {
