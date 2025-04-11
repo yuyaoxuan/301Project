@@ -4,13 +4,12 @@ import api from './api'
 export const authService = {
   async login(credentials) {
     const response = await api.post('/api/users/login', credentials)
-    if (response.data.id_token) {
-      // Set token in api instance for subsequent requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
-      return response
-      return response.data
+    if (!response.data?.id_token) {
+      throw new Error('Invalid response from server')
     }
-    throw new Error('Authentication failed')
+    // Set token in api instance for subsequent requests
+    api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
+    return response
   },
 
   logout() {
