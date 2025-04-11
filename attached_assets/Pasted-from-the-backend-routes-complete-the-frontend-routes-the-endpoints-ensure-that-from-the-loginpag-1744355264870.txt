@@ -1,0 +1,72 @@
+from the backend routes, complete the frontend routes (the endpoints), ensure that from the loginpage it will authenticate the user and will store the token locally in the frontend then if authentication pass then depend on the user it will direct to their dashboard (admin/agent). Note that: current changes (KAI added the jwt token), most of api calls have been protected so need to send in the jwt token for each call.
+this is the guide for the authentication:# 🔐 Feature 2 – How to Use Protected API Endpoints (With AWS Cognito) 
+
+Welcome to Feature 2! To test and use protected endpoints in this project, follow the instructions below to authenticate and make authorized API calls using Postman.
+
+---
+
+## ✅ Step 1: Log In via Cognito
+
+Open the following URL in your **web browser**:
+
+```
+http://localhost:8080/api/users/authenticate
+```
+
+You’ll be redirected to the AWS Cognito login page.
+
+### ✉️ Use one of the following test accounts:
+| Role       | Email              | Password    |
+|------------|--------------------|-------------|
+| Root Admin | Admin@root.com     | `!Password2` |
+| Agent      | Agent1@agent.com   | `!Password2` |
+
+---
+
+## 📥 Step 2: Get Your `id_token`
+
+After logging in, you’ll be redirected to:
+
+```
+http://localhost:8080/api/auth/callback?code=...
+```
+
+The page will return a JSON response like this:
+
+```json
+{
+  "access_token": "...",
+  "id_token": "PASTE_THIS_TOKEN",
+  ...
+}
+```
+
+**Copy the `id_token`** — you’ll need it for Postman.
+
+---
+
+## 📡 Step 3: Use Postman to Call Protected Endpoints
+
+1. Open **Postman**
+2. Create a new request
+3. Choose a **protected endpoint**, e.g.:
+   ```
+   DELETE http://localhost:8080/api/users/2
+   ```
+4. Go to the **Authorization** tab:
+   - Type: **Bearer Token**
+   - Token: **Paste the `id_token`**
+
+5. Click **Send**
+
+---
+
+## 🔒 Role-Based Access Notes
+
+- If you're logged in as **Agent**, access is limited.
+- If you're logged in as **Root Admin**, all endpoints should work.
+
+---
+
+Happy testing! ✅
+Also, need to add a update client page for agent to update their clients.
