@@ -86,22 +86,32 @@ router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('userRole')
 
-  if (to.meta.requiresAuth && !token) {
-    next('/login')
-    return
+  // Allow login page access
+  if (to.path === '/login') {
+    if (token) {
+      // If already logged in, redirect to appropriate dashboard
+      return next(userRole === 'Admin' ? '/admin-dashboard' : '/agent-dashboard')
+    }
+    return next()
   }
 
+  // Check authentication for protected routes
+  if (to.meta.requiresAuth && !token) {
+    return next('/login')
+  }
+
+  // Verify token if exists
   if (token) {
     try {
       await authService.authenticate()
     } catch (error) {
       localStorage.removeItem('token')
       localStorage.removeItem('userRole')
-      next('/login')
-      return
+      return next('/login')
     }
   }
 
+  // Role-based access control
   if (to.meta.requiresAdmin && userRole !== 'Admin') {
     next('/agent-dashboard')
     return

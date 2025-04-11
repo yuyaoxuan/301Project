@@ -25,10 +25,8 @@
             required
           />
         </div>
-        <div class="login-buttons">
-          <button type="submit" class="admin-login">Admin Login</button>
-          <button type="submit" class="agent-login">Agent Login</button>
-        </div>
+        <div class="error-message" v-if="error">{{ error }}</div>
+        <button type="submit" class="login-button">Login</button>
       </form>
     </div>
   </div>
@@ -38,6 +36,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from 'vuex'
+import { authService } from '../services/auth'
 
 export default {
   name: 'LoginPage',
@@ -48,19 +47,34 @@ export default {
       username: '',
       password: ''
     })
+    const error = ref('')
 
     const handleLogin = async () => {
       try {
-        await store.dispatch('auth/login', credentials.value)
-        router.push('/dashboard')
-      } catch (error) {
-        console.error('Login failed:', error)
+        error.value = ''
+        const response = await authService.login(credentials.value)
+        const userRole = response.data.role
+        
+        // Store token and role
+        localStorage.setItem('token', response.data.id_token)
+        localStorage.setItem('userRole', userRole)
+        
+        // Route based on role
+        if (userRole === 'Admin') {
+          router.push('/admin-dashboard')
+        } else if (userRole === 'Agent') {
+          router.push('/agent-dashboard')
+        }
+      } catch (err) {
+        error.value = err.response?.data?.message || 'Login failed'
+        console.error('Login failed:', err)
       }
     }
 
     return {
       credentials,
-      handleLogin
+      handleLogin,
+      error
     }
   }
 }
@@ -98,17 +112,18 @@ input {
   border-radius: 4px;
 }
 
-.login-buttons {
-  display: flex;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-button {
-  padding: 10px 20px;
+.login-button {
+  width: 100%;
+  padding: 10px;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   background-color: #D9D2C6;
+  margin-top: 20px;
+}
+
+.error-message {
+  color: red;
+  margin-top: 10px;
 }
 </style>

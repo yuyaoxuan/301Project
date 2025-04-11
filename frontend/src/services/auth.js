@@ -22,6 +22,7 @@ export const authService = {
   logout() {
     localStorage.removeItem('token')
     localStorage.removeItem('userRole')
+    api.defaults.headers.common['Authorization'] = ''
   },
 
   getCurrentUserRole() {
