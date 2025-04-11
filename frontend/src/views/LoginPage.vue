@@ -52,7 +52,10 @@ export default {
     const handleLogin = async () => {
       try {
         error.value = ''
-        const response = await authService.login(credentials.value)
+        const response = await authService.login({
+          email: credentials.value.username,
+          password: credentials.value.password
+        })
         const userRole = response.data.role
         
         // Store token and role
@@ -60,11 +63,8 @@ export default {
         localStorage.setItem('userRole', userRole)
         
         // Route based on role
-        if (userRole === 'Admin') {
-          router.push('/admin-dashboard')
-        } else if (userRole === 'Agent') {
-          router.push('/agent-dashboard')
-        }
+        const dashboard = userRole === 'Admin' ? '/admin-dashboard' : '/agent-dashboard'
+        router.push(dashboard)
       } catch (err) {
         error.value = err.response?.data?.message || 'Login failed'
         console.error('Login failed:', err)
