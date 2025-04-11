@@ -5,10 +5,11 @@ export const authService = {
   async login(credentials) {
     try {
       console.log('Sending login request:', credentials);
-      const response = await api.post('/users/login', {
+      const response = await api.post('/api/users/login', {
         email: credentials.email,
         password: credentials.password
       })
+      console.log('Login response:', response);
       if (!response.data?.id_token) {
         throw new Error('Invalid response from server')
       }
