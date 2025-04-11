@@ -122,6 +122,12 @@ router.beforeEach(async (to, from, next) => {
     return
   }
 
+  // Handle unknown roles
+  if (userRole && userRole !== 'Admin' && userRole !== 'Agent') {
+    next('/login')
+    return
+  }
+
   next()
 })
 
