@@ -15,7 +15,7 @@ export const authService = {
       api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
       return response
     } catch (error) {
-      console.error('Login error:', error)
+      console.error('Login error:', error.response?.data || error.message)
       throw error
     }
   },

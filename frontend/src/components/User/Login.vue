@@ -27,10 +27,12 @@ export default {
 
     const handleLogin = async () => {
       try {
+        console.log('Attempting login...')
         const response = await authService.login({
           username: username.value,
           password: password.value
         })
+        console.log('Login response:', response)
         
         // Only proceed if we get a valid token
         if (!response.data?.id_token) {
