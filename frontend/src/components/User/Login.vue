@@ -28,17 +28,24 @@ export default {
     const handleLogin = async () => {
       try {
         const response = await authService.login({
-          username: username.value,
+          email: username.value, // Using email as username
           password: password.value
         })
-        const userRole = authService.getCurrentUserRole()
-        if (userRole === 'admin') {
-          router.push('/admin-dashboard')
-        } else if (userRole === 'agent') {
-          router.push('/agent-dashboard')
+        
+        if (response.data.id_token) {
+          localStorage.setItem('token', response.data.id_token)
+          const userRole = response.data.user_info.groups[0].toLowerCase()
+          localStorage.setItem('userRole', userRole)
+          
+          if (userRole === 'admin') {
+            router.push('/admin-dashboard')
+          } else if (userRole === 'agent') {
+            router.push('/agent-dashboard')
+          }
         }
       } catch (error) {
-        console.error('Login failed:', error)
+        console.error('Login failed:', error.response?.data || error.message)
+        alert('Login failed. Please check your credentials.')
       }
     }
 

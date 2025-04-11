@@ -5,8 +5,9 @@ export const authService = {
   async login(credentials) {
     const response = await api.post('/api/users/login', credentials)
     if (response.data.id_token) {
-      localStorage.setItem('token', response.data.id_token)
-      localStorage.setItem('userRole', response.data.userRole)
+      // Set token in api instance for subsequent requests
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
+      return response
       return response.data
     }
     throw new Error('Authentication failed')
