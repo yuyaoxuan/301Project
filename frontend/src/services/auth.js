@@ -3,15 +3,21 @@ import api from './api'
 
 export const authService = {
   async login(credentials) {
-    const response = await api.post('/api/users/login', {
-      username: credentials.username,
-      password: credentials.password
-    })
-    if (!response.data?.id_token) {
-      throw new Error('Invalid response from server')
+    try {
+      const response = await api.post('/api/users/login', {
+        username: credentials.username,
+        password: credentials.password
+      })
+      if (!response.data?.id_token) {
+        throw new Error('Invalid response from server')
+      }
+      localStorage.setItem('token', response.data.id_token)
+      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
+      return response
+    } catch (error) {
+      console.error('Login error:', error)
+      throw error
     }
-    api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
-    return response
   },
 
   async authenticate() {

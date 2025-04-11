@@ -28,7 +28,7 @@ export default {
     const handleLogin = async () => {
       try {
         const response = await authService.login({
-          email: username.value,
+          username: username.value,
           password: password.value
         })
         
