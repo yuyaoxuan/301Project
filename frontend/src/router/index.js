@@ -82,13 +82,24 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('userRole')
 
   if (to.meta.requiresAuth && !token) {
     next('/login')
     return
+  }
+
+  if (token) {
+    try {
+      await authService.authenticate()
+    } catch (error) {
+      localStorage.removeItem('token')
+      localStorage.removeItem('userRole')
+      next('/login')
+      return
+    }
   }
 
   if (to.meta.requiresAdmin && userRole !== 'Admin') {

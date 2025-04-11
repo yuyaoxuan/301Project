@@ -7,9 +7,16 @@ export const authService = {
     if (!response.data?.id_token) {
       throw new Error('Invalid response from server')
     }
-    // Set token in api instance for subsequent requests
     api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
     return response
+  },
+
+  async authenticate() {
+    return await api.get('/api/users/authenticate')
+  },
+
+  async register(userData) {
+    return await api.post('/api/users', userData)
   },
 
   logout() {

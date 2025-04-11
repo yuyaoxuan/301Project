@@ -1,57 +1,48 @@
+
 import api from './api'
 
 export const logService = {
-  // Client logs
+  // Agent Client Logs
   async getClientLogs(clientId) {
-    const response = await api.get(`/agentclient_logs/client/${clientId}`)
-    return response.data
+    return await api.get(`/agentclient_logs/client/${clientId}`)
   },
 
-  async getClientLogsByAgent(agentId) {
-    const response = await api.get(`/agentclient_logs/agent/${agentId}`)
-    return response.data
-  },
-
-  async getAllClientLogs() {
-    const response = await api.get('/agentclient_logs')
-    return response.data
-  },
-
-  // Account logs
-  async getAccountLogs(clientId) {
-    const response = await api.get(`/agentclient_logs/account/client/${clientId}`)
-    return response.data
-  },
-
-  async getAccountLogsByAgent(agentId) {
-    const response = await api.get(`/agentclient_logs/account/agent/${agentId}`)
-    return response.data
-  },
-
-  async getAllAccountLogs() {
-    const response = await api.get('/agentclient_logs/account')
-    return response.data
-  },
-
-  // Combined logs
-  async getAllLogsByClient(clientId) {
-    const response = await api.get(`/agentclient_logs/all/client/${clientId}`)
-    return response.data
-  },
-
-  async getAllLogsByAgent(agentId) {
-    const response = await api.get(`/agentclient_logs/all/agent/${agentId}`)
-    return response.data
+  async getAgentLogs(agentId) {
+    return await api.get(`/agentclient_logs/agent/${agentId}`)
   },
 
   async getAllLogs() {
-    const response = await api.get('/agentclient_logs/all')
-    return response.data
+    return await api.get('/agentclient_logs')
+  },
+
+  // Account Logs
+  async getAccountLogsByClient(clientId) {
+    return await api.get(`/agentclient_logs/account/client/${clientId}`)
+  },
+
+  async getAccountLogsByAgent(agentId) {
+    return await api.get(`/agentclient_logs/account/agent/${agentId}`)
+  },
+
+  async getAllAccountLogs() {
+    return await api.get('/agentclient_logs/account')
+  },
+
+  // Combined Logs
+  async getAllClientAndAccountLogs(clientId) {
+    return await api.get(`/agentclient_logs/all/client/${clientId}`)
+  },
+
+  async getAllAgentAndAccountLogs(agentId) {
+    return await api.get(`/agentclient_logs/all/agent/${agentId}`)
+  },
+
+  async getCommunicationLog(logId) {
+    return await api.get(`/communication_logs/${logId}`)
   },
 
   async deleteLog(logId) {
-    const response = await api.delete(`/agentclient_logs/${logId}`)
-    return response.data
+    return await api.delete(`/agentclient_logs/${logId}`)
   }
 }
 
