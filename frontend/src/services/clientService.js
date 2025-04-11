@@ -1,4 +1,3 @@
-
 import api from './api'
 
 export const clientService = {
@@ -22,8 +21,8 @@ export const clientService = {
     return response.data
   },
 
-  async createClient(clientData) {
-    const response = await api.post('/clients', clientData)
+  async createClient(agentId, clientData) {
+    const response = await api.post(`/api/clients/${agentId}`, clientData)
     return response.data
   },
 
@@ -31,7 +30,7 @@ export const clientService = {
     const response = await api.post(`/clients/${agentId}`);
     return response.data;
   },
-  
+
   // async updateClient(clientId, clientData) {
   //   const response = await api.put(`/clients/${clientId}`, clientData)
   //   return response.data
@@ -41,7 +40,7 @@ export const clientService = {
     const response = await api.put(`/clients/${agentId}/${clientId}`);
     return response.data;
   },
-  
+
   async deleteClient(clientId) {
     const response = await api.delete(`/clients/${clientId}`)
     return response.data
