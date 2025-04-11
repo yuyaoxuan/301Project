@@ -14,6 +14,12 @@ api.interceptors.request.use(config => {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
+}, error => {
+  if (error.response && error.response.status === 401) {
+    localStorage.removeItem('token')
+    window.location.href = '/login'
+  }
+  return Promise.reject(error)
 })
 
 export default api

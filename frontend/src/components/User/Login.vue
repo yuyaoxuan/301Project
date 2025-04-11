@@ -1,4 +1,3 @@
-
 <template>
   <div class="login-container">
     <form @submit.prevent="handleLogin">
@@ -17,6 +16,7 @@
 <script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import authService from '@/services/authService' // Assuming authService is imported correctly
 
 export default {
   name: 'Login',
@@ -27,11 +27,14 @@ export default {
 
     const handleLogin = async () => {
       try {
-        const response = await store.dispatch('auth/login', credentials.value)
-        const userRole = store.state.auth.userRole
+        const response = await authService.login({
+          username: username.value,
+          password: password.value
+        })
+        const userRole = authService.getCurrentUserRole()
         if (userRole === 'admin') {
           router.push('/admin-dashboard')
-        } else {
+        } else if (userRole === 'agent') {
           router.push('/agent-dashboard')
         }
       } catch (error) {

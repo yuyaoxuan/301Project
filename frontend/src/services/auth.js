@@ -3,25 +3,26 @@ import api from './api'
 
 export const authService = {
   async login(credentials) {
-    const response = await api.post('/login', credentials)
-    return response.data
+    const response = await api.post('/users/authenticate', credentials)
+    if (response.data.id_token) {
+      localStorage.setItem('token', response.data.id_token)
+      localStorage.setItem('userRole', response.data.userRole)
+      return response.data
+    }
+    throw new Error('Authentication failed')
   },
 
-  async register(userData) {
-    const response = await api.post('/register', userData)
-    return response.data
-  },
-
-  getToken() {
-    return localStorage.getItem('token')
-  },
-
-  setToken(token) {
-    localStorage.setItem('token', token)
-  },
-
-  removeToken() {
+  logout() {
     localStorage.removeItem('token')
+    localStorage.removeItem('userRole')
+  },
+
+  getCurrentUserRole() {
+    return localStorage.getItem('userRole')
+  },
+
+  isAuthenticated() {
+    return !!localStorage.getItem('token')
   }
 }
 

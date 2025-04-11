@@ -37,6 +37,11 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/clients/:id/edit',
+    component: () => import('../components/Client/ClientUpdateForm.vue'),
+    meta: { requiresAuth: true, requiresAgent: true }
+  },
+  {
     path: '/accounts',
     component: AccountPage,
     meta: { requiresAuth: true }
