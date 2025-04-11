@@ -91,6 +91,6 @@ func main() {
 	}
 
 	// Start the server
-	fmt.Println("Server is running on port 5000")
-	log.Fatal(http.ListenAndServe("0.0.0.0:5000", handler(router)))
+	fmt.Println("Server is running on port 8080")
+	log.Fatal(http.ListenAndServe("0.0.0.0:8080", handler(router)))
 }
