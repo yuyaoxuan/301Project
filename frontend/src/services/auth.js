@@ -31,7 +31,7 @@ export const authService = {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
       return {
-        id_token: token,
+        token: token,
         role: userRole.toLowerCase(), // Ensure consistent casing
         email: userEmail
       }

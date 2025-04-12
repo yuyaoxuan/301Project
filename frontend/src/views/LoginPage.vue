@@ -57,13 +57,13 @@ export default {
           password: credentials.value.password
         })
         
-        const userRole = localStorage.getItem('userRole')
-        if (!userRole) {
-          throw new Error('Login failed - no role assigned')
-        }
+        const response = await authService.login({
+          email: credentials.value.username,
+          password: credentials.value.password
+        })
         
-        // Route based on role
-        const dashboard = userRole.toLowerCase() === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
+        // Route based on role from response
+        const dashboard = response.role === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
         await router.push(dashboard)
       } catch (err) {
         error.value = err.response?.data?.message || 'Login failed'
