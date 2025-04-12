@@ -29,7 +29,7 @@ export default {
       try {
         console.log('Attempting login...')
         const response = await authService.login({
-          username: username.value,
+          email: username.value,
           password: password.value
         })
         console.log('Login response:', response)
