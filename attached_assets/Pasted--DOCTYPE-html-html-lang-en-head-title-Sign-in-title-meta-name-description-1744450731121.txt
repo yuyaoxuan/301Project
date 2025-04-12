@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Sign-in</title>
+    <meta name="description" content="Sign-in" />
+    <meta name="charset" content="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/x-icon"
+        href="https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-ico-light.ico" />
+    <link rel="icon" type="image/svg+xml"
+        href="https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-svg-light.svg" />
+    <link rel="stylesheet"
+        href="https://dag2zz4hdxr0w.cloudfront.net/2g45kkfdu9ba88uhksnv3c86uu/theme-1744096302000-02db37d7-e3ad-47dc-a072-597205f92c6d.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-BCCNYJT6-B5PzF2wC.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-CGWvD4hB.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/root-CXxru3hc.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-ZNDB273M-CmuWIHRg.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-NSYVNWS4-CEaSzR4e.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-PpmVewC1.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/internal-Cm1D8zKk.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-DtsvwNNQ.css" />
+    <link rel="stylesheet" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-LBNSYZDT-GvtQNHtq.css" />
+</head>
+
+<body class="awsui-comfortable-mode">
+    <script nonce="7dd666804d5c03d9c90a040bee886dd99e8e0b9006ca897075bbd5b67f45c18c">
+        ((colorModeSetting) => {
+  const userPreferredColorMode = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  const colorMode = colorModeSetting === "dynamic" || !["light", "dark"].includes(colorModeSetting) ? userPreferredColorMode : colorModeSetting;
+  if (colorMode === "dark") {
+    document.documentElement.classList.add("awsui-dark-mode");
+    document.body.classList.add("awsui-dark-mode");
+  }
+})('light')
+    </script>
+    <main class="main-layout content-vertical-position-center content-horizontal-position-center">
+        <div class="cognito-form-area">
+            <div class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-l_18582_1ke47_206">
+                <div class="awsui_child_18582_1ke47_145">
+                    <div class="cognito-form-container">
+                        <div
+                            class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-l_18582_1ke47_206">
+                            <div class="awsui_child_18582_1ke47_145">
+                                <div data-analytics-funnel-step="1" class="awsui_root_1i0s3_1i4yo_141">
+                                    <div class="awsui_content_1i0s3_1i4yo_180">
+                                        <div
+                                            class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-l_18582_1ke47_206">
+                                            <div class="awsui_child_18582_1ke47_145">
+                                                <div
+                                                    class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-xxs_18582_1ke47_194">
+                                                    <div class="awsui_child_18582_1ke47_145">
+                                                        <h2 class="cognito-form-header">Sign in</h2>
+                                                    </div>
+                                                    <div class="awsui_child_18582_1ke47_145">
+                                                        <p class="cognito-form-description">Sign in to your account.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="awsui_child_18582_1ke47_145">
+                                                <div class="cognito-nestable-col">
+                                                    <div class="sections">
+                                                        <div class="section">
+                                                            <form method="post"
+                                                                action="/login?client_id=2g45kkfdu9ba88uhksnv3c86uu&amp;redirect_uri=http://localhost:8080/api/auth/callback&amp;response_type=code&amp;scope=openid+email+profile&amp;state=state"
+                                                                id="primary-form" aria-label="primary-form"
+                                                                novalidate="" data-discover="true"><input type="hidden" name="csrf" value="EH3KMA3hzAnVeUQqnLM8J3cqc8Wpa54sUpy/B+jhMDX1r4emAKb4G5GNgjM8VE42H5sKPaN8mTveUVLFI3gVzCbZXQR+R5/9YgvfBTAyU/ECbZPAZaHShHHkvganNiFOkj9fFRqWssyAy4/HHV8gS9vMheZN+PMGQYUxCH1u2P8="/>
+                                                                <div
+                                                                    class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-l_18582_1ke47_206">
+                                                                    <div class="awsui_child_18582_1ke47_145">
+                                                                        <div class="awsui_root_14mhv_17rvs_228"
+                                                                            data-analytics-field-label="[id=&quot;formField:R36sn55:-label&quot;]">
+                                                                            <div
+                                                                                class="awsui_label-wrapper_14mhv_17rvs_304">
+                                                                                <label class="awsui_label_14mhv_17rvs_264 awsui_label_aqu00_ocied_5" id="formField:R36sn55:-label" for="formField:R36sn55:">Email address</label>
+                                                                            </div>
+                                                                            <div class="awsui_controls_14mhv_17rvs_301">
+                                                                                <div class="awsui_grid_14yj0_1ll5u_141">
+                                                                                    <div
+                                                                                        class="awsui_grid-column_14yj0_1ll5u_185 awsui_colspan-12_14yj0_1ll5u_306">
+                                                                                        <div
+                                                                                            class="awsui_restore-pointer-events_14yj0_1ll5u_356">
+                                                                                            <div
+                                                                                                class="awsui_control_14mhv_17rvs_301">
+                                                                                                <div class="awsui_root_2rhyz_1y5qv_141 awsui_input-container_2rhyz_1y5qv_309"
+                                                                                                    dir="ltr"><input aria-labelledby="formField:R36sn55:-label" name="username" placeholder="name@host.com" autofocus="" id="formField:R36sn55:" class="awsui_input_2rhyz_1y5qv_145" autoComplete="on" type="email" inputMode="email" value=""/>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="awsui_child_18582_1ke47_145">
+                                                                        <div
+                                                                            class="awsui_root_18582_1ke47_141 awsui_vertical_18582_1ke47_188 awsui_vertical-xs_18582_1ke47_197">
+                                                                            <div class="awsui_child_18582_1ke47_145">
+                                                                                <button class="awsui_button_vjswe_1jo4q_153 awsui_variant-primary_vjswe_1jo4q_296 awsui_full-width_vjswe_1jo4q_1140" data-analytics-funnel-value="button:Rd6sn55:" type="submit"><span class="awsui_content_vjswe_1jo4q_149 awsui_label_1f1d4_ocied_5">Next</span></button>
+                                                                            </div>
+                                                                            <div class="awsui_child_18582_1ke47_145">
+                                                                                <div
+                                                                                    class="cognito-form-action-text-block">
+                                                                                    <p
+                                                                                        class="awsui_root_18wu0_1b5ka_916 awsui_box_18wu0_1b5ka_168 awsui_p-variant_18wu0_1b5ka_168 awsui_p-n_18wu0_1b5ka_395 awsui_color-default_18wu0_1b5ka_168 awsui_font-size-default_18wu0_1b5ka_184 awsui_font-weight-default_18wu0_1b5ka_224">
+                                                                                        New user? <a
+                                                                                            id="link-self:R2l6sn55H1:"
+                                                                                            class="awsui_link_4c84z_1n6oz_141 awsui_variant-secondary_4c84z_1n6oz_210 awsui_font-size-body-m_4c84z_1n6oz_474"
+                                                                                            aria-labelledby=""
+                                                                                            data-analytics-funnel-value="link:R2l6sn55:"
+                                                                                            href="/signup?client_id=2g45kkfdu9ba88uhksnv3c86uu&amp;redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fauth%2Fcallback&amp;response_type=code&amp;scope=openid+email+profile&amp;state=state">Create
+                                                                                            an account</a></p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div><input type="hidden" name="cognitoAsfData" value=""/>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <script nonce="7dd666804d5c03d9c90a040bee886dd99e8e0b9006ca897075bbd5b67f45c18c">
+        ((STORAGE_KEY, restoreKey) => {
+    if (!window.history.state || !window.history.state.key) {
+      let key = Math.random().toString(32).slice(2);
+      window.history.replaceState({
+        key
+      }, "");
+    }
+    try {
+      let positions = JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "{}");
+      let storedY = positions[restoreKey || window.history.state.key];
+      if (typeof storedY === "number") {
+        window.scrollTo(0, storedY);
+      }
+    } catch (error) {
+      console.error(error);
+      sessionStorage.removeItem(STORAGE_KEY);
+    }
+  })("positions", null)
+    </script>
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/manifest-8fc2e30d.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/entry.client-Cg7GTV9-.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-CRzMDn3k.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/components-B3D9RsAO.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/models_0-CrRNeVjK.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-BCCNYJT6-BQVePpfA.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-PFXFZHAN-1neJgqj-.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-46RRH5HC-tn3X6Tzb.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/request-BssFybX8.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/page-data.types-BgstS5q_.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/utils-COwEXiH-.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/root-BIi7wO4c.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/info-link-label-context-D5GpbVif.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-NSYVNWS4-g3Q6D-4d.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/form-field-context-vsEiD9Wz.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-ECNyWYLB.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-C1nxYkMp.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-ZNDB273M-CXg08Hhz.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-CtI2vEnm.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-5CFFB5AK-CUDPh2x1.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/remix-form-CollG-GF.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-CF45NQI7-w6PugAi9.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-XXK3TI5C-CxgFoWl9.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/internal-BBQDB3i4.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-3M-Mq56M.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/index-21BNVbDm.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-SMZLASFR-gb6evypy.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-W2OTFGPU-goKAXy7F.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-LBNSYZDT-B3ABHKKS.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-WBC6DQW4-YUCwCRWk.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-5NI7IJOT-DKA3Gj8g.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-CPKPWIJF-BGSFPof2.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/chunk-24LSZQOO-CRnLS0_g.js" />
+    <link rel="modulepreload"
+        href="https://d33gr5sjna5oyg.cloudfront.net/assets/login_.passkey_.fallbackLogin-BwZPZqm8.js" />
+    <link rel="modulepreload" href="https://d33gr5sjna5oyg.cloudfront.net/assets/login-TdLLU_cr.js" />
+    <script nonce="7dd666804d5c03d9c90a040bee886dd99e8e0b9006ca897075bbd5b67f45c18c">
+        window.__remixContext = {"url":"/login","basename":"/","future":{"v3_fetcherPersist":false,"v3_relativeSplatPath":false,"v3_throwAbortReason":false,"unstable_singleFetch":false,"unstable_lazyRouteDiscovery":false},"isSpaMode":false,"state":{"loaderData":{"root":{"csrf":"EH3KMA3hzAnVeUQqnLM8J3cqc8Wpa54sUpy/B+jhMDX1r4emAKb4G5GNgjM8VE42H5sKPaN8mTveUVLFI3gVzCbZXQR+R5/9YgvfBTAyU/ECbZPAZaHShHHkvganNiFOkj9fFRqWssyAy4/HHV8gS9vMheZN+PMGQYUxCH1u2P8=","nonce":"7dd666804d5c03d9c90a040bee886dd99e8e0b9006ca897075bbd5b67f45c18c","uxConfig":{"styles":"","layout":{"colorSchemeMode":"light","density":"comfortable","header":false,"footer":false,"formLocation":{"vertical":"Center","horizontal":"Center"}},"foundation":{"signIn":{"signInMethodOrder":[[1,0]],"idpButtonOrder":[],"federationUiStyle":0},"signUp":{"acceptanceElements":[]},"form":{"displayGraphics":true,"timer":0,"graphics":{"email":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-email-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-email-dark.svg"}},"sms":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-sms-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-sms-dark.svg"}},"authApp":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-auth-app-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-auth-app-dark.svg"}},"password":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-password-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-password-dark.svg"}},"passkey":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-passkey-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-graphic-passkey-dark.svg"}}}}},"component":{"favicon":{"enabledTypes":["ICO","SVG"],"ico":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-ico-light.ico","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-ico-dark.ico"}},"svg":{"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-svg-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-favicon-svg-dark.svg"}}},"pageHeader":{"logo":{"enabled":false,"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-dark.svg"},"location":"Start"},"links":{"location":"Start","elements":[]}},"pageFooter":{"logo":{"enabled":false,"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-dark.svg"},"location":"Start"},"links":{"location":"Start","elements":[]}},"form":{"logo":{"enabled":false,"imageUrl":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/image/cognito-image-logo-dark.svg"},"location":0,"inclusion":0,"alignment":"Center"},"languageSelector":false,"instructions":false},"formField":{"autofill":false},"languageSelector":1,"phoneNumberSelector":1,"idpButtonIconConfigs":{"iconsEnabled":true,"defaults":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-default-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-default-dark.svg"},"overrides":{"LoginWithAmazon":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-amazon-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-amazon-dark.svg"},"SignInWithApple":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-apple-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-apple-dark.svg"},"Facebook":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-facebook-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-facebook-dark.svg"},"Google":{"light":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-google-light.svg","dark":"https://d2jelzl0fbj693.cloudfront.net/default-assets/icon/cognito-icon-idp-google-dark.svg"}}},"idpButtonCssOverrides":{}}},"themeCssUrl":"https://dag2zz4hdxr0w.cloudfront.net/2g45kkfdu9ba88uhksnv3c86uu/theme-1744096302000-02db37d7-e3ad-47dc-a072-597205f92c6d.css","i18nStrings":{"errors":{"generalErrors":{"serviceTemporarilyUnavailablePrefix":{"description":"Service temporarily unavailable"},"applicationErrorPrefix":{"description":"Application error"},"userErrorPrefix":{"description":"Please check your input and try again"},"internalError":{"description":"An error occurred. Please contact an administrator."},"sessionExpiredError":{"description":"Session expired. Login again."},"invalidRequestError":{"description":"Operation failed. Please try again."},"tooManyRequestsError":{"description":"You have exceeded the request limit. Please try again later."},"wafError":{"title":"Access denied.","description":"You do not have permission to access this resource.","captcha":{"post":"Please contact your administrator.","get":"Please refresh the page and try again."}}},"webAuthn":{"registration":{"relyingPartyMismatchError":{"description":"Domain '{{domain}}' does not match with the RPID '{{rpId}}'. Please contact an administrator."},"internalError":{"description":"Unable to register passkey. Please contact an administrator."},"missingPublicKeyCredentialError":{"description":"Invalid public credential. Please contact an administrator."},"throttlingError":{"description":"You have exceeded the request limit. Please try again later."},"limitError":{"description":"You have exceeded the maximum number of passkeys for the account."},"sessionError":{"description":"Session expired. Login again."},"notSupportedError":{"description":"Passkey is not supported. Please try using a different device/browser."},"existsError":{"description":"Passkey is already registered."},"abortError":{"description":"Passkey registration aborted"},"networkError":{"description":"Passkey registration failed. Please try again."},"unknownError":{"description":"Unable to register passkey. Please contact an administrator."}}},"boundary":{"invalidInput":{"title":"Invalid input","description":"Please check your input and try again."},"internalServerError":{"title":"Something went wrong","description":"An error was encountered with the requested page."},"invalidRequestError":{"title":"Invalid request","description":"Please check your input and try again."},"missingRequiredParameterError":{"title":"Missing required parameters","description":"Missing required parameter {{parameter}} in request URL."},"missingCognitoAuthCookieError":{"title":"Missing authentication cookie","description":"Please return to login page to restart your authentication process."},"missingAccessTokenError":{"title":"Missing access token","description":"Please sign in again."},"tooManyRequestsError":{"title":"Too many requests","description":"You have exceeded the request limit. Please try again later."},"unresolvedDomainError":{"title":"Could not resolve domain","description":"Please contact an administrator."},"invalidConfigError":{"title":"Invalid configuration","description":"Please contact an administrator."},"uxConfigError":{"title":"Login pages unavailable","description":"Please contact an administrator."},"generic":{"title":"Something went wrong","description":"An error was encountered with the requested page."},"missingRedirectUrl":{"description":"Missing redirect uri parameter"},"missingClientId":{"description":"Missing client id parameter"},"missingDomain":{"description":"Missing domain parameter"},"invalidRedirectUri":{"description":"Invalid redirect uri parameter"},"postAuthPageIsNotAccessible":{"title":"Access denied","description":"You do not have access to this page. Please contact an administrator."}},"csrf":"Invalid CSRF token.","validation":{"password":{"leadingTrailingSpace":"Password must not contain a leading or trailing space.","minLength":"Password must be at least {{length}} character(s).","uppercase":"Password must contain an uppercase letter.","lowercase":"Password must contain a lowercase letter.","number":"Password must contain a number.","symbols":"Password must contain a special character or a space.","mismatch":"Password does not match."},"invalidDate":"Invalid date, must be in the format YYYY-MM-DD.","generic":{"format":"Invalid {{attr}}.","required":"Missing {{attr}}.","maxLength":"{{attr}} must be at most {{length}} characters."}},"unconfirmedAccount":{"emailLink":"Your account must be confirmed before you can continue. Please check your email and follow the instructions."}},"layout":{"header":{"logoAlt":"Header logo"},"footer":{"logoAlt":"Footer logo"}},"components":{"form":{"logoAlt":"Form logo"},"backButton":{"label":"Back"},"fallbackFactorButton":{"fallbackMultipleFactorButton":"Try another way","fallbackSingleFactorButtonPassword":"Use password instead","fallbackSingleFactorButtonPasskey":"Use passkey instead","fallbackSingleFactorButtonEmailOTP":"Email one-time password","fallbackSingleFactorButtonSmsOTP":"SMS one-time password"},"mfaDescription":{"email":{"iconAlt":"Email icon","medium":"Email"},"sms":{"iconAlt":"SMS icon","medium":"SMS"},"totp":{"iconAlt":"Authenticator app icon","medium":"Authenticator app"},"password":{"medium":"Password","iconAlt":"Password icon"},"passkey":{"medium":"Passkey","iconAlt":"Passkey icon"}},"fields":{"password":{"label":"Password","showPasswords":{"label":"Show password"},"validation":{"minimumLength":"Password must be at least {{length}} characters","requireNumbers":"Use a number","requireLowercase":"Use a lowercase letter","requireUppercase":"Use an uppercase letter","requireSymbols":"Use a symbol"}},"username":{"label":"Username","placeholder":"Enter username"},"email":{"label":"Email address","placeholder":"name@host.com"},"phone_number":{"label":"Phone number","placeholder":"Country code | Phone number","errors":{"required":"Missing phone number.","maxLength":"Email must be at most 2048 characters."}},"code":{"label":"Code","verification_code_label":"Verification code","placeholder":"Enter code","passwordless_placeholder":"Enter code","resendCode":"Resend code"},"website":{"label":"Website","placeholder":"Enter URL of your webpage"},"name":{"label":"Name","placeholder":"Enter your full name"},"given_name":{"label":"Given name","placeholder":"Enter your given name or first name"},"family_name":{"label":"Family name","placeholder":"Enter your family name or last name"},"middle_name":{"label":"Middle name","placeholder":"Enter your middle name"},"nickname":{"label":"Nickname","placeholder":"Enter your nickname"},"preferred_username":{"label":"Preferred username","placeholder":"Enter your preferred username"},"profile":{"label":"Profile","placeholder":"Enter URL to your profile page"},"picture":{"label":"Picture","placeholder":"Enter URL to your profile picture"},"gender":{"label":"Gender","placeholder":"Enter your gender"},"birthdate":{"label":"Birthdate","placeholder":"YYYY-MM-DD"},"zoneinfo":{"label":"Zone info","placeholder":"Enter your zone information i.e. Europe/Paris"},"locale":{"label":"Locale","placeholder":"Enter your locale i.e. en-US"},"address":{"label":"Address","placeholder":"Enter your address"},"updated_at":{"label":"Updated at","placeholder":"Time your information was last updated"}},"idpButtons":{"social":{"google":"Sign in with Google","facebook":"Continue with Facebook","apple":"Continue with Apple","amazon":"Login with Amazon"},"custom":{"saml":"Continue with {{providerName}}","oidc":"Continue with {{providerName}}"},"icon":{"alt":"{{idpName}} icon"}},"idpDropdown":{"dropdown":{"label":"Accounts","placeholder":"Choose a method"},"signIn":{"label":"Sign in"}},"idpFormField":{"label":"Corporate email","placeholder":"username@corporateID.com"}},"pages":{"login":{"title":"Sign-in","form":{"header":"Sign in","description":"Sign in to your account.","sections":{"native":{"header":"With existing account","forgotPasswordLink":"Forgot your password?","signUpPrompt":"New user? [Create an account]({ml-nav:sign-up})","password":{"label":"Password","placeholder":"Enter password","showPassword":"Show password"},"submitButton":"Sign in","continueButton":"Next"},"social":{"header":"With social account"},"custom":{"header":"With corporate account"},"federated":{"header":"With other accounts"}}}},"signup":{"title":"Sign up","form":{"header":"Sign up","description":"Create a new account.","submitButton":"Sign up","signInPrompt":"Have an account already? [Sign in]({ml-nav:sign-in})","password":{"label":"Password","placeholder":"Enter password"},"confirmPassword":{"label":"Confirm password","placeholder":"Reenter password"}}},"registerPasskey":{"title":"Set up sign-in with a passkey","form":{"header":"Set up sign-in with a passkey","signUpSuccessMessage":"Your registration has been confirmed!","description":"Sign in with an authenticator on your device or a security key.","submitButton":"Add passkey","noThanksButton":"Not now"}},"forgotPassword":{"title":"Forgot your password?","form":{"header":"Forgot your password?","description":"Enter your {{signInAttribute}}. We will send a message with a code to reset your password.","submitButton":"Reset my password"}},"resetPassword":{"title":"Reset password","form":{"header":"Reset password","description":"We have sent a password reset code in an {{deliveryMedium}} message to {{destination}}. Enter your code and your new password.","submitButton":"Change password","password":{"label":"New password","placeholder":"Enter new password"},"confirmPassword":{"label":"Confirm new password","placeholder":"Reenter new password"}}},"forceChangePassword":{"title":"Change password","form":{"header":"Change password","description":"Please choose a unique password to secure your account.","submitButton":"Change password","password":{"label":"New password","placeholder":"Enter new password"},"confirmPassword":{"label":"Confirm new password","placeholder":"Re-enter new password"}}},"confirmUser":{"title":"Confirm your account","form":{"header":"Confirm your account","description":"We have sent a code in an {{deliveryMedium}} message to {{destination}}. To confirm your account, enter your code.","submitButton":"Confirm account"}},"confirmUserWithLink":{"title":"Verify your account with email link","form":{"header":"Confirm account","description":"We have sent an email to {{destination}}. Please check your email, follow the instructions to verify your email address, and then click the button below to continue.","continueButton":"Continue","sendNewLinkPrompt":"Didn't receive a link? [Send a new link]({ml-nav:send-confirm-link})","sendNewLinkPrefix":"Didn't receive a link?","sendNewLinkButton":"Send a new link"}},"confirmUserWithLinkResult":{"title":"Confirm account result","form":{"successHeader":"Confirmation success","failureHeader":"Confirmation failure","successMessage":"Your registration has been confirmed!"}},"continueAs":{"title":"Sign-in","form":{"header":"Sign in","description":"You're still signed in. Sign in again?","submitButton":"Sign in as {{username}}","submitButtonProvider":"Sign in with {{providerName}}","logout":"Sign in as a different user?"}},"verifyPassword":{"title":"Enter your password","form":{"header":"Enter your password","submitButton":"Continue"}},"verifyPasskey":{"title":"Sign in with a passkey","form":{"header":"Sign in with a passkey","description":"Sign in with an authenticator on your device or a security key.","submitButton":"Continue"},"invalidPasskeyError":"Invalid passkey selected, please select a different one and try again."},"verifyCode":{"title":"Enter code","description":"Enter code"},"verifySMSCode":{"title":"Check your phone","form":{"header":"Check your phone","description":"Enter the code that we sent to the phone number ending in {{destination}}. The code expires in 15 minutes.","submitButton":"Continue"}},"verifyEmailCode":{"title":"Check your email","form":{"header":"Check your email","description":"Enter the code that we sent to the email address {{destination}}. The code expires in 15 minutes.","submitButton":"Continue"}},"mfaVerifyCode":{"title":"MFA Verify Code","form":{"header":"{{deliveryMedium}} MFA","description":"Enter the code that we sent in an {{deliveryMedium}} to {{destination}}.","totpDescription":"To complete sign-in, enter the code from your authenticator app.","submitButton":"Sign in"}},"mfaRegisterTotp":{"title":"Setup MFA","form":{"header":"Set up authenticator app MFA","description":"Complete the process with the code in your authenticator app to set up the MFA and sign-in.","installationTitle":"1. Install","installationDescription":"Install an authenticator app on your mobile device.","qrCode":{"title":"2. Scan QR code","description":"Scan this QR code with your authenticator app. Alternatively, you can manually enter a secret key in your authenticator app on your mobile device.","secretKey":"Show secret key","secretKeyPrefix":"Secret key: {{secretKey}}","alt":"QR code for Authenticator app"},"enterCodeTitle":"3. Enter code","submitButton":"Sign in"}},"mfaOptions":{"title":"MFA setup","form":{"header":"Set up MFA","description":"Your account requires multi-factor authentication (MFA). To proceed, select a method to authenticate with.","submitButton":"Continue","mfaChallengeOptions":{"authenticator":{"title":"Authenticator app","description":"Authenticate using a code generated by an app installed on your mobile device or computer","iconAlt":"Authenticator app icon"},"sms":{"title":"SMS","description":"Authenticate using a code sent via text message to your phone","iconAlt":"SMS icon"},"email":{"title":"Email","description":"Authenticate using a code sent via email","iconAlt":"Email icon"}}}},"mfaRegister":{"title":"{{deliveryMedium}} MFA","form":{"header":"{{deliveryMedium}} MFA","description":{"email":"Enter your email address to receive a message with an authentication code. ","phone":"Enter your phone number to receive a message with an authentication code."},"submitButton":"Send code"}},"availableChallenges":{"title":"Sign-in","form":{"header":"Choose a sign-in method","description":"Choose how you want to verify your identity.","submitButton":"Continue","challengeOptions":{"authenticator":{"title":"Authenticator app","iconAlt":"Authenticator app icon"},"password":{"title":"Password","iconAlt":"Password icon"},"passkey":{"title":"Your phone or security key","iconAlt":"Passkey icon"},"email":{"title":"Email one-time password","iconAlt":"Email icon"},"sms":{"title":"SMS one-time password","iconAlt":"SMS icon"}}}},"eventFeedbackResults":{"title":"Event feedback","failureHeader":"Something went wrong.","successHeader":"Thank you for your feedback.","successMessage":"Thank you, we have received and recorded your feedback.","invalidLinkError":"Invalid link provided.","genericError":"Something went wrong, please try again later."}}},"locale":"en","clientId":"2g45kkfdu9ba88uhksnv3c86uu"},"routes/login":{"usernamePattern":"Email","socialIdps":[],"oidcIdps":[],"samlIdps":[],"signUpLink":"/signup?client_id=2g45kkfdu9ba88uhksnv3c86uu\u0026redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fauth%2Fcallback\u0026response_type=code\u0026scope=openid+email+profile\u0026state=state","forgotPasswordLink":"/forgotPassword?client_id=2g45kkfdu9ba88uhksnv3c86uu\u0026redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fauth%2Fcallback\u0026response_type=code\u0026scope=openid+email+profile\u0026state=state","isCognitoIdpPasswordRequired":false,"loginHint":"","oidcLink":"/login/oidc?client_id=2g45kkfdu9ba88uhksnv3c86uu\u0026redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fapi%2Fauth%2Fcallback\u0026response_type=code\u0026scope=openid+email+profile\u0026state=state"}},"actionData":null,"errors":null}};
+    </script>
+    <script nonce="7dd666804d5c03d9c90a040bee886dd99e8e0b9006ca897075bbd5b67f45c18c" type="module" async="">
+        import "https://d33gr5sjna5oyg.cloudfront.net/assets/manifest-8fc2e30d.js";
+import * as route0 from "https://d33gr5sjna5oyg.cloudfront.net/assets/root-BIi7wO4c.js";
+import * as route1 from "https://d33gr5sjna5oyg.cloudfront.net/assets/login-TdLLU_cr.js";
+
+window.__remixRouteModules = {"root":route0,"routes/login":route1};
+
+import("https://d33gr5sjna5oyg.cloudfront.net/assets/entry.client-Cg7GTV9-.js");
+    </script>
+</body>
+
+</html>
