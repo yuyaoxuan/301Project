@@ -40,7 +40,27 @@ export const authService = {
   },
 
   async authenticate() {
-    return await api.get('/users/authenticate')
+    try {
+      const response = await api.get('/users/authenticate')
+      // Handle redirect to callback
+      if (response.data?.id_token) {
+        const token = response.data.id_token
+        const userRole = response.data.user_info?.groups?.[0] || 'Agent'
+        
+        localStorage.setItem('token', token)
+        localStorage.setItem('userRole', userRole)
+        api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+        
+        return {
+          id_token: token,
+          role: userRole.toLowerCase()
+        }
+      }
+      return response
+    } catch (error) {
+      console.error('Authentication error:', error)
+      throw error
+    }
   },
 
   async register(userData) {
