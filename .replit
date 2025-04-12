@@ -13,3 +13,6 @@ args = "cd backend && go run main.go"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "cd frontend && npm run dev"
+
+[nix]
+channel = "stable-24_05"
