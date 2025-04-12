@@ -15,15 +15,16 @@ export const authService = {
         throw new Error('Invalid response from server')
       }
 
-      // Store token and user info
+      // Store token and decode JWT to get user info
       const token = response.data.id_token
-      const userInfo = response.data.user_info || {}
-      const userRole = userInfo.groups?.[0] || 'Agent'
+      const payload = JSON.parse(atob(token.split('.')[1]))
+      const userRole = payload['cognito:groups']?.[0] || 'Agent'
+      const userEmail = payload.email
 
       // Store auth data
       localStorage.setItem('token', token)
       localStorage.setItem('userRole', userRole)
-      localStorage.setItem('userEmail', userInfo.email)
+      localStorage.setItem('userEmail', userEmail)
       
       // Set auth header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
