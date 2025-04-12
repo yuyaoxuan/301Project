@@ -21,16 +21,13 @@ export const authService = {
       // Store token and decode JWT to get user info
       const token = response.data.access_token
       const payload = JSON.parse(atob(token.split('.')[1]))
-      const userRole = payload['cognito:groups']?.[0] || 'Agent'
+      const userRole = (payload['cognito:groups']?.[0] || 'Agent').toLowerCase()
       const userEmail = payload.email
 
       // Store auth data and set API header
       localStorage.setItem('token', token)
       localStorage.setItem('userRole', userRole)
       localStorage.setItem('userEmail', userEmail)
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      
-      // Set auth header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
       return {

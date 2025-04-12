@@ -72,7 +72,7 @@ export default {
         const dashboard = response.role === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
         console.log('Redirecting to:', dashboard)
         
-        await router.push(dashboard)
+        router.push({ path: dashboard }).catch(() => {})
       } catch (err) {
         console.error('Login error:', err)
         error.value = err.response?.data?.message || 'Login failed'
