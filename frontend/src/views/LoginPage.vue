@@ -57,14 +57,16 @@ export default {
           password: credentials.value.password
         })
         
-        const userRole = response.data.user_info.groups[0]
+        // Access response data directly since authService already processed it
+        const userRole = response.role
+        const token = response.id_token
         
-        // Store token and role
-        localStorage.setItem('token', response.data.id_token)
+        // Store auth data
+        localStorage.setItem('token', token)
         localStorage.setItem('userRole', userRole)
         
         // Route based on role
-        const dashboard = userRole === 'Admin' ? '/admin-dashboard' : '/agent-dashboard'
+        const dashboard = userRole.toLowerCase() === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
         router.push(dashboard)
       } catch (err) {
         error.value = err.response?.data?.message || 'Login failed'
