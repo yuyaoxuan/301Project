@@ -57,12 +57,13 @@ export default {
           password: credentials.value.password
         })
         
-        // Use response from auth service which contains role and email
-        const { role, id_token: token } = response
+        // Access response data directly since authService already processed it
+        const userRole = response.role
+        const token = response.id_token
         
-        // Store auth data and redirect based on role
+        // Store auth data
         localStorage.setItem('token', token)
-        localStorage.setItem('userRole', role)
+        localStorage.setItem('userRole', userRole)
         
         // Route based on role
         const dashboard = userRole.toLowerCase() === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
