@@ -32,7 +32,7 @@ export const authService = {
       return {
         id_token: token,
         role: userRole.toLowerCase(), // Ensure consistent casing
-        email: userInfo.email
+        email: userEmail
       }
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message)
