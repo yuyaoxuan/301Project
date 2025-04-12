@@ -51,10 +51,12 @@ export default {
 
     const handleLogin = async () => {
       try {
+        console.log('Starting login process...')
         error.value = ''
-        const response = await authService.login({
+        
+        console.log('Credentials:', {
           email: credentials.value.username,
-          password: credentials.value.password
+          password: '***' // Masked for security
         })
         
         const response = await authService.login({
@@ -62,10 +64,17 @@ export default {
           password: credentials.value.password
         })
         
-        // Route based on role from response
+        console.log('Login successful:', {
+          role: response.role,
+          email: response.email
+        })
+        
         const dashboard = response.role === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
+        console.log('Redirecting to:', dashboard)
+        
         await router.push(dashboard)
       } catch (err) {
+        console.error('Login error:', err)
         error.value = err.response?.data?.message || 'Login failed'
         console.error('Login failed:', err)
       }

@@ -4,12 +4,15 @@ import api from './api'
 export const authService = {
   async login(credentials) {
     try {
-      console.log('Sending login request:', credentials);
+      console.log('Auth service: Sending login request to API...');
       const response = await api.post('/users/login', {
         email: credentials.email,
         password: credentials.password
       })
-      console.log('Login response:', response);
+      console.log('Auth service: Received API response:', {
+        status: response.status,
+        data: response.data
+      });
       
       if (!response.data?.access_token) {
         throw new Error('Invalid response from server')
