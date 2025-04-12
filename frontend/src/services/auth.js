@@ -21,7 +21,7 @@ export const authService = {
       // Store token and decode JWT to get user info
       const token = response.data.access_token
       const payload = JSON.parse(atob(token.split('.')[1]))
-      const userRole = (payload['cognito:groups']?.[0] || 'Agent').toLowerCase()
+      const userRole = (payload['cognito:groups']?.[0] || 'Agent')
       const userEmail = payload.email || payload['cognito:username']
       
       console.log('Auth service: Token payload:', { userRole, userEmail })

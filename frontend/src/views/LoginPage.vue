@@ -69,7 +69,7 @@ export default {
           email: response.email
         })
         
-        const dashboard = response.role === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
+        const dashboard = response.role.toLowerCase() === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
         console.log('Login: User role:', response.role)
         console.log('Login: Target dashboard:', dashboard)
         console.log('Login: Starting navigation...')
