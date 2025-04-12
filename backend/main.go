@@ -1,11 +1,12 @@
 package main
 
 import (
+	_ "backend/services/envloader"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	_ "backend/services/envloader"
+
 	"github.com/joho/godotenv" // ✅ Load .env
 
 	"backend/database"
@@ -62,7 +63,7 @@ func main() {
 
 	// Create the LogService which will use the repository to log actions
 	logService := agentclient_logs.NewAgentClientLogService(agentClientLogRepo, observerManager)
-	communicationService := communicationlogs.NewCommunicationLogService(communicationRepo)
+	communicationService := communicationlogs.NewCommunicationLogService(communicationRepo, clientService)
 
 	clientObserver := &observer.ClientObserver{LogService: logService}
 	accountObserver := &observer.AccountObserver{LogService: logService}
@@ -76,21 +77,7 @@ func main() {
 	// Set up routes
 	router := routes.SetupRoutes(clientService, accountService, logService)
 
-	// Add CORS middleware
-	handler := func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("Access-Control-Allow-Origin", "*")
-			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-			if r.Method == "OPTIONS" {
-				w.WriteHeader(http.StatusOK)
-				return
-			}
-			h.ServeHTTP(w, r)
-		})
-	}
-
 	// Start the server
 	fmt.Println("Server is running on port 8080")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", handler(router)))
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
