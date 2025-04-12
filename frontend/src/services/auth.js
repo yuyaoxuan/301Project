@@ -10,21 +10,25 @@ export const authService = {
         password: credentials.password
       })
       console.log('Login response:', response);
+      
       if (!response.data?.id_token) {
         throw new Error('Invalid response from server')
       }
-      
-      // Store token
-      localStorage.setItem('token', response.data.id_token)
-      api.defaults.headers.common['Authorization'] = `Bearer ${response.data.id_token}`
-      
-      // Get user role from authentication endpoint
-      const authResponse = await this.authenticate()
-      const userRole = authResponse.data.groups[0] // Assuming first group is the role
+
+      // Store token and user info
+      const token = response.data.id_token
+      const userInfo = response.data.user_info || {}
+      const userRole = userInfo.groups?.[0] || 'Agent'
+
+      localStorage.setItem('token', token)
       localStorage.setItem('userRole', userRole)
-      
-      // Return both responses
-      return { loginResponse: response, role: userRole }
+      api.defaults.headers.common['Authorization'] = `Bearer ${token}`
+
+      return { 
+        id_token: token,
+        role: userRole,
+        email: userInfo.email
+      }
     } catch (error) {
       console.error('Login error:', error.response?.data || error.message)
       throw error

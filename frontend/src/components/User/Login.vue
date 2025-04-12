@@ -34,23 +34,15 @@ export default {
         })
         console.log('Login response:', response)
 
-        // Only proceed if we get a valid token and user info
-        if (!response.data?.id_token || !response.data?.user_info?.groups) {
-          throw new Error('Invalid credentials or missing user information')
-        }
-
-        localStorage.setItem('token', response.data.id_token)
-        const userRole = response.data.user_info.groups[0].toLowerCase();
-        localStorage.setItem('userRole', userRole)
-
-        //Improved error handling for missing or invalid roles
+        const userRole = response.role.toLowerCase()
+        
         if (userRole === 'admin') {
           router.push('/admin-dashboard')
         } else if (userRole === 'agent') {
           router.push('/agent-dashboard')
         } else {
-          console.error("Unknown user role:", userRole);
-          alert('Invalid user role. Please contact support.');
+          console.error("Unknown user role:", userRole)
+          alert('Invalid user role. Please contact support.')
         }
       } catch (error) {
         console.error('Login failed:', error)
