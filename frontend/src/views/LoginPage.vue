@@ -56,7 +56,8 @@ export default {
           email: credentials.value.username,
           password: credentials.value.password
         })
-        const userRole = response.data.role
+        
+        const userRole = response.data.user_info.groups[0]
         
         // Store token and role
         localStorage.setItem('token', response.data.id_token)
