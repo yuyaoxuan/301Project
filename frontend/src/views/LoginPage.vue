@@ -8,11 +8,11 @@
       <h2>CRM Login</h2>
       <form @submit.prevent="handleLogin">
         <div class="form-group">
-          <label>Username</label>
+          <label>email</label>
           <input 
             type="text" 
-            v-model="credentials.username" 
-            placeholder="Enter username"
+            v-model="credentials.email" 
+            placeholder="Enter email"
             required
           />
         </div>
@@ -44,7 +44,7 @@ export default {
     const router = useRouter()
     const store = useStore()
     const credentials = ref({
-      username: '',
+      email: '',
       password: ''
     })
     const error = ref('')
@@ -55,12 +55,12 @@ export default {
         error.value = ''
         
         console.log('Credentials:', {
-          email: credentials.value.username,
+          email: credentials.value.email,
           password: '***' // Masked for security
         })
         
         const response = await authService.login({
-          email: credentials.value.username,
+          email: credentials.value.email,
           password: credentials.value.password
         })
         

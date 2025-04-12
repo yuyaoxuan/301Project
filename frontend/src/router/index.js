@@ -19,47 +19,47 @@ const routes = [
   {
     path: '/admin-dashboard',
     component: () => import('../views/AdminDashboard.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: false, requiresAdmin: false }
   },
   {
     path: '/agent-dashboard',
     component: () => import('../views/AgentDashboard.vue'),
-    meta: { requiresAuth: true, requiresAgent: true }
+    meta: { requiresAuth: false, requiresAgent: false }
   },
   {
     path: '/clients',
     component: ClientPage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/clients/new',
     component: ClientForm,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/clients/:id/edit',
     component: () => import('../components/Client/ClientUpdateForm.vue'),
-    meta: { requiresAuth: true, requiresAgent: true }
+    meta: { requiresAuth: false, requiresAgent: false }
   },
   {
     path: '/accounts',
     component: AccountPage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/accounts/unassigned',
     component: () => import('../views/UnassignedAccountPage.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
+    meta: { requiresAuth: false, requiresAdmin: false }
   },
   {
     path: '/transactions',
     component: TransactionPage,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/logs',
     component: LogsPage,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: false },
     children: [
       {
         path: 'client',
