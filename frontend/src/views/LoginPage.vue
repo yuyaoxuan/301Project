@@ -57,17 +57,14 @@ export default {
           password: credentials.value.password
         })
         
-        // Access response data directly since authService already processed it
-        const userRole = response.role
-        const token = response.id_token
-        
-        // Store auth data
-        localStorage.setItem('token', token)
-        localStorage.setItem('userRole', userRole)
+        const userRole = localStorage.getItem('userRole')
+        if (!userRole) {
+          throw new Error('Login failed - no role assigned')
+        }
         
         // Route based on role
         const dashboard = userRole.toLowerCase() === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
-        router.push(dashboard)
+        await router.push(dashboard)
       } catch (err) {
         error.value = err.response?.data?.message || 'Login failed'
         console.error('Login failed:', err)
