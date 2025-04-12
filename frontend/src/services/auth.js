@@ -5,7 +5,7 @@ export const authService = {
   async login(credentials) {
     try {
       console.log('Sending login request:', credentials);
-      const response = await api.post('/api/users/login', {
+      const response = await api.post('/users/login', {
         email: credentials.email,
         password: credentials.password
       })
@@ -23,11 +23,11 @@ export const authService = {
   },
 
   async authenticate() {
-    return await api.get('/api/users/authenticate')
+    return await api.get('/users/authenticate')
   },
 
   async register(userData) {
-    return await api.post('/api/users', userData)
+    return await api.post('/users', userData)
   },
 
   logout() {
