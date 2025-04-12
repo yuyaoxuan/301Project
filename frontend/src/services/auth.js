@@ -22,7 +22,7 @@ export const authService = {
       const token = response.data.access_token
       const payload = JSON.parse(atob(token.split('.')[1]))
       const userRole = (payload['cognito:groups']?.[0] || 'Agent').toLowerCase()
-      const userEmail = payload.email
+      const userEmail = payload.email || payload['cognito:username']
 
       // Store auth data and set API header
       localStorage.setItem('token', token)
