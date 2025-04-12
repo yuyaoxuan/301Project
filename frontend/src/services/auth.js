@@ -20,13 +20,17 @@ export const authService = {
       const userInfo = response.data.user_info || {}
       const userRole = userInfo.groups?.[0] || 'Agent'
 
+      // Store auth data
       localStorage.setItem('token', token)
       localStorage.setItem('userRole', userRole)
+      localStorage.setItem('userEmail', userInfo.email)
+      
+      // Set auth header
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
 
-      return { 
+      return {
         id_token: token,
-        role: userRole,
+        role: userRole.toLowerCase(), // Ensure consistent casing
         email: userInfo.email
       }
     } catch (error) {
