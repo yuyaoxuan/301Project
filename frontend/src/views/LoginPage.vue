@@ -70,9 +70,16 @@ export default {
         })
         
         const dashboard = response.role === 'admin' ? '/admin-dashboard' : '/agent-dashboard'
-        console.log('Redirecting to:', dashboard)
+        console.log('Login: User role:', response.role)
+        console.log('Login: Target dashboard:', dashboard)
+        console.log('Login: Starting navigation...')
         
-        await router.push(dashboard)
+        try {
+          await router.push(dashboard)
+          console.log('Login: Navigation successful')
+        } catch (navError) {
+          console.error('Login: Navigation failed:', navError)
+        }
       } catch (err) {
         console.error('Login error:', err)
         error.value = err.response?.data?.message || 'Login failed'
